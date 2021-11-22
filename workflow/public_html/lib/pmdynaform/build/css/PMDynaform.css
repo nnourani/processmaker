@@ -743,7 +743,6 @@
 .pmdynaform-field .glyphicon-info-sign {
   float: right;
   z-index: 2;
-  width: 8px;
   height: fit-content;
   padding-left: 4px;
 }
@@ -973,6 +972,10 @@ a.form-control {
 
 .select2-container .select2-selection--single {
   border: 1px solid #ccc;
+}
+
+.pmdynaform-spaceHint {
+  width: 20px;
 }
 
 textarea {
@@ -2774,6 +2777,7 @@ textarea {
   width: 100%;
   color: #555151;
   background: #f1f1f1;
+  white-space: inherit;
 }
 
 .has-error .btn-uploadfile {

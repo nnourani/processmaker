@@ -817,7 +817,7 @@ class ProcessMakerWebDav extends HTTP_WebDAV_Server
             if ($options["overwrite"]) {
                 $stat = $this->DELETE(array("path" => $options["dest"]
                         ));
-                if (($stat{0} != "2") && (substr($stat, 0, 3) != "404")) {
+                if (($stat[0] != "2") && (substr($stat, 0, 3) != "404")) {
                     return $stat;
                 }
             } else {

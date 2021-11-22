@@ -25,6 +25,7 @@
  *
  */
 
+use ProcessMaker\Model\Delegation;
 use ProcessMaker\Plugins\PluginRegistry;
 
 /**
@@ -40,6 +41,24 @@ use ProcessMaker\Plugins\PluginRegistry;
  */
 class AppDelegation extends BaseAppDelegation
 {
+    /**
+     * Get the risk value
+     *
+     * @return double
+    */
+    public function getRisk()
+    {
+        try {
+            // This value needs to have a value like 0.x
+            $systemConfiguration = Bootstrap::getSystemConfiguration();
+            $risk = $systemConfiguration['at_risk_delegation_max_time'];
+
+            return $risk;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
     /**
      * Get previous delegation (Valid Task)
      *
@@ -71,7 +90,7 @@ class AppDelegation extends BaseAppDelegation
                 $record = $rsCriteria->getRow();
 
                 if ($flagIncludeCurrentDel) {
-                    if (preg_match('/^(?:' . 'NORMAL|SCRIPT\-TASK|WEBENTRYEVENT|START\-MESSAGE\-EVENT|START\-TIMER\-EVENT' . ')$/', $record['TAS_TYPE'])) {
+                    if (preg_match('/^(?:' . 'SERVICE\-TASK|NORMAL|SCRIPT\-TASK|WEBENTRYEVENT|START\-MESSAGE\-EVENT|START\-TIMER\-EVENT' . ')$/', $record['TAS_TYPE'])) {
                         $arrayAppDelegationPrevious = $record;
                         $flagPrevious = false;
                     }
@@ -90,42 +109,59 @@ class AppDelegation extends BaseAppDelegation
     }
 
     /**
-     * create an application delegation
+     * Create an application delegation
      *
-     * @param $sProUid process Uid
-     * @param $sAppUid Application Uid
-     * @param $sTasUid Task Uid
-     * @param $sUsrUid User Uid
-     * @param $iPriority delegation priority
-     * @param $isSubprocess is a subprocess inside a process?
-     * @return delegation index of the application delegation.
+     * @param string $proUid process Uid
+     * @param string $appUid Application Uid
+     * @param string $tasUid Task Uid
+     * @param string $usrUid User Uid
+     * @param int $priority delegation priority
+     * @param bool $isSubprocess is a subprocess inside a process?
+     *
+     * @return int index of the application delegation.
      */
-    public function createAppDelegation($sProUid, $sAppUid, $sTasUid, $sUsrUid, $sAppThread, $iPriority = 3, $isSubprocess = false, $sPrevious = -1, $sNextTasParam = null, $flagControl = false, $flagControlMulInstance = false, $delPrevious = 0, $appNumber = 0, $taskId = 0, $userId = 0, $proId = 0)
-    {
-        if (! isset($sProUid) || strlen($sProUid) == 0) {
-            throw (new Exception('Column "PRO_UID" cannot be null.'));
+    public function createAppDelegation(
+        $proUid,
+        $appUid,
+        $tasUid,
+        $usrUid,
+        $sAppThread,
+        $priority = 3,
+        $isSubprocess = false,
+        $previous = -1,
+        $nextTasParam = null,
+        $flagControl = false,
+        $flagControlMulInstance = false,
+        $delPrevious = 0,
+        $appNumber = 0,
+        $taskId = 0,
+        $userId = 0,
+        $proId = 0
+    ){
+        if (! isset($proUid) || strlen($proUid) == 0) {
+             throw new Exception('Column "PRO_UID" cannot be null.');
         }
 
-        if (! isset($sAppUid) || strlen($sAppUid) == 0) {
-            throw (new Exception('Column "APP_UID" cannot be null.'));
+        if (! isset($appUid) || strlen($appUid) == 0) {
+            throw new Exception('Column "APP_UID" cannot be null.');
         }
 
-        if (! isset($sTasUid) || strlen($sTasUid) == 0) {
-            throw (new Exception('Column "TAS_UID" cannot be null.'));
+        if (! isset($tasUid) || strlen($tasUid) == 0) {
+            throw new Exception('Column "TAS_UID" cannot be null.');
         }
 
-        if (! isset($sUsrUid) /*|| strlen($sUsrUid ) == 0*/) {
-            throw (new Exception('Column "USR_UID" cannot be null.'));
+        if (! isset($usrUid)) {
+            throw new Exception('Column "USR_UID" cannot be null.');
         }
 
         if (! isset($sAppThread) || strlen($sAppThread) == 0) {
-            throw (new Exception('Column "APP_THREAD" cannot be null.'));
+            throw new Exception('Column "APP_THREAD" cannot be null.');
         }
 
         $this->delegation_id = null;
-        //Get max DEL_INDEX
+        // Get max DEL_INDEX
         $criteria = new Criteria("workflow");
-        $criteria->add(AppDelegationPeer::APP_UID, $sAppUid);
+        $criteria->add(AppDelegationPeer::APP_UID, $appUid);
         $criteria->add(AppDelegationPeer::DEL_LAST_INDEX, 1);
         $criteria->addDescendingOrderByColumn(AppDelegationPeer::DEL_INDEX);
 
@@ -135,8 +171,8 @@ class AppDelegation extends BaseAppDelegation
         $rs->setFetchmode(ResultSet::FETCHMODE_ASSOC);
 
         $delIndex = 1;
-        $delPreviusUsrUid = $sUsrUid;
-        $delPreviousFather = $sPrevious;
+        $delPreviusUsrUid = $usrUid;
+        $delPreviousFather = $previous;
         if ($rs->next()) {
             $row = $rs->getRow();
 
@@ -148,7 +184,7 @@ class AppDelegation extends BaseAppDelegation
 
             $criteriaDelIndex->addSelectColumn(AppDelegationPeer::DEL_INDEX);
             $criteriaDelIndex->addSelectColumn(AppDelegationPeer::DEL_DELEGATE_DATE);
-            $criteriaDelIndex->add(AppDelegationPeer::APP_UID, $sAppUid);
+            $criteriaDelIndex->add(AppDelegationPeer::APP_UID, $appUid);
             $criteriaDelIndex->addDescendingOrderByColumn(AppDelegationPeer::DEL_DELEGATE_DATE);
 
             $rsCriteriaDelIndex = AppDelegationPeer::doSelectRS($criteriaDelIndex);
@@ -160,23 +196,23 @@ class AppDelegation extends BaseAppDelegation
                 $delIndex = (isset($row["DEL_INDEX"]))? $row["DEL_INDEX"] + 1 : 1;
             }
         }
-        //Verify successors: parrallel submit in the same time
+        // Verify successors: parallel submit in the same time
         if ($flagControl) {
-            $nextTaskUid = $sTasUid;
-            $index = $this->getAllTasksBeforeSecJoin($nextTaskUid, $sAppUid, $delPreviousFather);
-            if ($this->createThread($index, $sAppUid)) {
+            $nextTaskUid = $tasUid;
+            $index = $this->getAllTasksBeforeSecJoin($nextTaskUid, $appUid, $delPreviousFather);
+            if ($this->createThread($index, $appUid)) {
                 return 0;
             }
         }
         if ($flagControlMulInstance) {
-            $nextTaskUid = $sTasUid;
-            $index = $this->getAllTheardMultipleInstance($delPreviousFather, $sAppUid);
-            if ($this->createThread($index, $sAppUid, $sUsrUid)) {
+            $nextTaskUid = $tasUid;
+            $index = $this->getAllTheardMultipleInstance($delPreviousFather, $appUid);
+            if ($this->createThread($index, $appUid, $usrUid)) {
                 return 0;
             }
         }
 
-        //Update set
+        // Update set
         $criteriaUpdate = new Criteria('workflow');
         $criteriaUpdate->add(AppDelegationPeer::DEL_LAST_INDEX, 0);
         BasePeer::doUpdate($criteria, $criteriaUpdate, Propel::getConnection('workflow'));
@@ -184,41 +220,40 @@ class AppDelegation extends BaseAppDelegation
         // Define the status of the thread, if is subprocess we need to CLOSED the thread
         $theadStatus = !$isSubprocess ? 'OPEN' : 'CLOSED';
 
-        $this->setAppUid($sAppUid);
-        $this->setProUid($sProUid);
-        $this->setTasUid($sTasUid);
+        $this->setAppUid($appUid);
+        $this->setProUid($proUid);
+        $this->setTasUid($tasUid);
         $this->setDelIndex($delIndex);
         $this->setDelLastIndex(1);
-        $this->setDelPrevious($sPrevious == - 1 ? 0 : $sPrevious);
-        $this->setUsrUid($sUsrUid);
+        $this->setDelPrevious($previous == - 1 ? 0 : $previous);
+        $this->setUsrUid($usrUid);
         $this->setDelType('NORMAL');
-        $this->setDelPriority(($iPriority != '' ? $iPriority : '3'));
+        $this->setDelPriority(($priority != '' ? $priority : '3'));
         $this->setDelThread($sAppThread);
         $this->setDelThreadStatus($theadStatus);
+        $this->setDelThreadStatusId(Delegation::$thread_status[$theadStatus]);
         $this->setDelDelegateDate('now');
         $this->setAppNumber($appNumber);
         $this->setTasId($taskId);
         $this->setUsrId($userId);
         $this->setProId($proId);
 
-        //The function return an array now.  By JHL
-        $delTaskDueDate = $this->calculateDueDate($sNextTasParam);
-        $delRiskDate    = $this->calculateRiskDate($sNextTasParam, $this->getRisk());
-
-        //$this->setDelTaskDueDate( $delTaskDueDate['DUE_DATE'] ); // Due date formatted
+        // The function return an array now.  By JHL
+        $delTaskDueDate = $this->calculateDueDate($nextTasParam);
+        $delRiskDate    = $this->calculateRiskDate($nextTasParam, $this->getRisk());
         $this->setDelTaskDueDate($delTaskDueDate);
         $this->setDelRiskDate($delRiskDate);
 
         if ((defined("DEBUG_CALENDAR_LOG")) && (DEBUG_CALENDAR_LOG)) {
-            //$this->setDelData( $delTaskDueDate['DUE_DATE_LOG'] ); // Log of actions made by Calendar Engine
+            // Log of actions made by Calendar Engine
             $this->setDelData($delTaskDueDate);
         } else {
             $this->setDelData('');
         }
 
-        // this condition assures that an internal delegation like a subprocess dont have an initial date setted
+        // This condition assures that an internal delegation like a subprocess don't have an initial date set
         if ($delIndex == 1 && ! $isSubprocess) {
-            //the first delegation, init date this should be now for draft applications, in other cases, should be null.
+            // The first delegation, init date this should be now for draft applications, in other cases, should be null.
             $this->setDelInitDate('now');
         }
 
@@ -245,23 +280,23 @@ class AppDelegation extends BaseAppDelegation
             $bpmn = new \ProcessMaker\Project\Bpmn();
             $flagActionsByEmail = true;
 
-            $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask($sAppUid, $delIndex);
+            $arrayAppDelegationPrevious = $this->getPreviousDelegationValidTask($appUid, $delIndex);
 
             $data = new stdclass();
-            $data->TAS_UID = $sTasUid;
-            $data->APP_UID = $sAppUid;
+            $data->TAS_UID = $tasUid;
+            $data->APP_UID = $appUid;
             $data->DEL_INDEX = $delIndex;
-            $data->USR_UID = $sUsrUid;
+            $data->USR_UID = $usrUid;
             $data->PREVIOUS_USR_UID = ($arrayAppDelegationPrevious !== false)? $arrayAppDelegationPrevious['USR_UID'] : $delPreviusUsrUid;
 
-            if ($bpmn->exists($sProUid)) {
+            if ($bpmn->exists($proUid)) {
 
 
             }
 
             if ($flagActionsByEmail) {
-                $oPluginRegistry = PluginRegistry::loadSingleton();
-                $oPluginRegistry->executeTriggers(PM_CREATE_NEW_DELEGATION, $data);
+                $pluginRegistry = PluginRegistry::loadSingleton();
+                $pluginRegistry->executeTriggers(PM_CREATE_NEW_DELEGATION, $data);
             }
         }
 
@@ -435,30 +470,38 @@ class AppDelegation extends BaseAppDelegation
         //Calendar - Use the dates class to calculate dates
         $calendar = new Calendar();
 
-        $arrayCalendarData = $calendar->getCalendarData($aCalendarUID);
+        $calendarData = $calendar->getCalendarData($aCalendarUID);
 
         if ($calendar->pmCalendarUid == "") {
             $calendar->getCalendar(null, $this->getProUid(), $this->getTasUid());
 
-            $arrayCalendarData = $calendar->getCalendarData();
+            $calendarData = $calendar->getCalendarData();
         }
 
         //Due date
         $initDate = $this->getDelDelegateDate();
         $timeZone = \ProcessMaker\Util\DateTime::convertUtcToTimeZone($initDate);
-        $dueDate = $calendar->dashCalculateDate($timeZone, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $arrayCalendarData);
+        $dueDate = $calendar->dashCalculateDate($timeZone, $aData["TAS_DURATION"], $aData["TAS_TIMEUNIT"], $calendarData);
 
         $dueDate = \ProcessMaker\Util\DateTime::convertDataToUtc($dueDate);
         return $dueDate;
     }
 
-    public function calculateRiskDate($dueDate, $risk)
+    /**
+     * Calculate the risk date
+     *
+     * @param array $nextTask
+     * @param double $risk
+     *
+     * @return string
+    */
+    public function calculateRiskDate($nextTask, $risk)
     {
         try {
-            $data = array();
-            if (isset($sNextTasParam['NEXT_TASK']['TAS_TRANSFER_HIDDEN_FLY']) && $sNextTasParam['NEXT_TASK']['TAS_TRANSFER_HIDDEN_FLY'] == 'true') {
-                $data['TAS_DURATION'] = $sNextTasParam['NEXT_TASK']['TAS_DURATION'];
-                $data['TAS_TIMEUNIT'] = $sNextTasParam['NEXT_TASK']['TAS_TIMEUNIT'];
+            $data = [];
+            if (isset($nextTask['NEXT_TASK']['TAS_TRANSFER_HIDDEN_FLY']) && $nextTask['NEXT_TASK']['TAS_TRANSFER_HIDDEN_FLY'] == 'true') {
+                $data['TAS_DURATION'] = $nextTask['NEXT_TASK']['TAS_DURATION'];
+                $data['TAS_TIMEUNIT'] = $nextTask['NEXT_TASK']['TAS_TIMEUNIT'];
             } else {
                 $task = TaskPeer::retrieveByPK($this->getTasUid());
                 $data['TAS_DURATION'] = $task->getTasDuration();
@@ -467,30 +510,26 @@ class AppDelegation extends BaseAppDelegation
 
             $riskTime = $data['TAS_DURATION'] - ($data['TAS_DURATION'] * $risk);
 
-            //Calendar - Use the dates class to calculate dates
+            // Calendar - Use the dates class to calculate dates
             $calendar = new Calendar();
-
-            $arrayCalendarData = array();
-
-            if ($calendar->pmCalendarUid == "") {
+            $calendarData = [];
+            if (empty($calendar->pmCalendarUid)) {
                 $calendar->getCalendar(null, $this->getProUid(), $this->getTasUid());
-
-                $arrayCalendarData = $calendar->getCalendarData();
+                $calendarData = $calendar->getCalendarData();
             }
 
-            //Risk date
-            $riskDate = $calendar->dashCalculateDate($this->getDelDelegateDate(), $riskTime, $data['TAS_TIMEUNIT'], $arrayCalendarData);
+            // Risk date
+            $riskDate = $calendar->dashCalculateDate(
+                $this->getDelDelegateDate(),
+                $riskTime,
+                $data['TAS_TIMEUNIT'],
+                $calendarData
+            );
 
             return $riskDate;
         } catch (Exception $e) {
             throw $e;
         }
-    }
-
-    public function getDiffDate($date1, $date2)
-    {
-        return ($date1 - $date2) / (24 * 60 * 60); //days
-        return ($date1 - $date2) / 3600;
     }
 
     //usually this function is called when routing in the flow, so by default cron =0
@@ -760,8 +799,10 @@ class AppDelegation extends BaseAppDelegation
 
     /**
      * This function get the current user related to the specific case and index
+     *
      * @param string $appUid, Uid related to the case
      * @param integer $index, Index to review
+     *
      * @return array
     */
     public static function getCurrentUsers($appUid, $index)
@@ -781,7 +822,8 @@ class AppDelegation extends BaseAppDelegation
     /**
     * Verify if the current case is already routed.
     *
-    * @param string $AppUid the uid of the application
+    * @param string $appUid the uid of the application
+     *
     * @return array $Fields the fields
     */
 
@@ -799,18 +841,6 @@ class AppDelegation extends BaseAppDelegation
             return true;
         } else {
             return false;
-        }
-    }
-
-    public function getRisk()
-    {
-        try {
-            $risk = 0.2;
-
-            //Return
-            return $risk;
-        } catch (Exception $e) {
-            throw $e;
         }
     }
 

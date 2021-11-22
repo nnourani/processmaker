@@ -817,6 +817,15 @@ class Variable
             //in the current change there is no specific property that indicates
             //if the control is in the grid.
             if (isset($field->columnWidth)) {
+                if (!empty($field->dataVariable)) {
+                    //this support the global variable for @?, only access grids
+                    //for access to all variables, replace with '/^\s*@.(.+)\s*$/'
+                    $dataVariable = preg_match('/^\s*@\?(.+)\s*$/', $field->dataVariable, $arrayMatch) ? $arrayMatch[1] : $json->dataVariable;
+                    if (isset($params[$dataVariable]) && is_array($params[$dataVariable])) {
+                        $globalVariables[$dataVariable] = $params[$dataVariable];
+                        $paramsAndGlobal[$dataVariable] = $params[$dataVariable];
+                    }
+                }
                 $pmDynaform->fields["APP_DATA"] = $globalVariables;
                 $field->queryInputData = $paramsAndGlobal;
             }

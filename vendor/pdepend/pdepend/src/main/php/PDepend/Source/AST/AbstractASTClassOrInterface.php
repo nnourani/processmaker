@@ -118,12 +118,15 @@ abstract class AbstractASTClassOrInterface extends AbstractASTType
     {
         $parents = array();
         $parent  = $this;
-        while (is_object($parent = $parent->getParentClass())) {
+
+        while ($parent = $parent->getParentClass()) {
             if (in_array($parent, $parents, true)) {
                 throw new ASTClassOrInterfaceRecursiveInheritanceException($parent);
             }
+
             $parents[] = $parent;
         }
+
         return $parents;
     }
 
@@ -156,7 +159,7 @@ abstract class AbstractASTClassOrInterface extends AbstractASTType
     /**
      * Returns a node iterator with all implemented interfaces.
      *
-     * @return \PDepend\Source\AST\ASTInterface[]
+     * @return ASTArtifactList<\PDepend\Source\AST\AbstractASTClassOrInterface>
      * @since  0.9.5
      */
     public function getInterfaces()
@@ -169,9 +172,11 @@ abstract class AbstractASTClassOrInterface extends AbstractASTType
         while (($top = array_pop($stack)) !== null) {
             foreach ($top->interfaceReferences as $interfaceReference) {
                 $interface = $interfaceReference->getType();
+
                 if (in_array($interface, $interfaces, true) === true) {
                     continue;
                 }
+
                 $interfaces[] = $interface;
                 $stack[] = $interface;
             }
@@ -183,7 +188,7 @@ abstract class AbstractASTClassOrInterface extends AbstractASTType
     /**
      * Returns an array of references onto the interfaces of this class node.
      *
-     * @return array
+     * @return \PDepend\Source\AST\ASTClassOrInterfaceReference[]
      * @since  0.10.4
      */
     public function getInterfaceReferences()
@@ -288,7 +293,7 @@ abstract class AbstractASTClassOrInterface extends AbstractASTType
      * Returns all {@link \PDepend\Source\AST\AbstractASTClassOrInterface}
      * objects this type depends on.
      *
-     * @return \PDepend\Source\AST\AbstractASTClassOrInterface[]
+     * @return ASTClassOrInterfaceReferenceIterator
      */
     public function getDependencies()
     {

@@ -47,6 +47,7 @@ use PDepend\Source\AST\ASTClass;
 use PDepend\Source\AST\ASTClassOrInterfaceReference;
 use PDepend\Source\AST\ASTFunction;
 use PDepend\Source\AST\ASTInterface;
+use PDepend\Source\AST\ASTNode;
 use PDepend\Source\AST\ASTTrait;
 use PDepend\Util\Cache\CacheDriver;
 
@@ -55,6 +56,9 @@ use PDepend\Util\Cache\CacheDriver;
  *
  * @copyright 2008-2017 Manuel Pichler. All rights reserved.
  * @license http://www.opensource.org/licenses/bsd-license.php BSD License
+ *
+ * @template T of mixed
+ * @extends \IteratorAggregate<T>
  */
 interface Builder extends \IteratorAggregate
 {
@@ -67,7 +71,7 @@ interface Builder extends \IteratorAggregate
      * Setter method for the currently used token cache.
      *
      * @param  \PDepend\Util\Cache\CacheDriver $cache
-     * @return \PDepend\Source\Builder\Builder
+     * @return \PDepend\Source\Builder\Builder<mixed>
      * @since  0.10.0
      */
     public function setCache(CacheDriver $cache);
@@ -923,6 +927,58 @@ interface Builder extends \IteratorAggregate
     public function buildAstArguments();
 
     /**
+     * Builds a new argument match expression single-item slot.
+     *
+     * <code>
+     * match($x)
+     * </code>
+     *
+     * @return \PDepend\Source\AST\ASTMatchArgument
+     * @since  0.9.6
+     */
+    public function buildAstMatchArgument();
+
+    /**
+     * Builds a new argument match expression single-item slot.
+     *
+     * <code>
+     * match($x) {
+     *   "foo" => "bar",
+     * }
+     * </code>
+     *
+     * @return \PDepend\Source\AST\ASTMatchBlock
+     * @since  2.9.0
+     */
+    public function buildAstMatchBlock();
+
+    /**
+     * Builds a new argument match expression single-item slot.
+     *
+     * <code>
+     * "foo" => "bar",
+     * </code>
+     *
+     * @return \PDepend\Source\AST\ASTMatchEntry
+     * @since  2.9.0
+     */
+    public function buildAstMatchEntry();
+
+    /**
+     * Builds a new named argument node.
+     *
+     * <code>
+     * number_format(5623, thousands_separator: ' ')
+     * </code>
+     *
+     * @param string $name
+     * @param ASTNode $value
+     * @return \PDepend\Source\AST\ASTNamedArgument
+     * @since  2.9.0
+     */
+    public function buildAstNamedArgument($name, ASTNode $value);
+
+    /**
      * Builds a new array type node.
      *
      * @return \PDepend\Source\AST\ASTTypeArray
@@ -954,6 +1010,14 @@ interface Builder extends \IteratorAggregate
      * @since  0.9.6
      */
     public function buildAstScalarType($image);
+
+    /**
+     * Builds a new node for the union type.
+     *
+     * @return \PDepend\Source\AST\ASTUnionType
+     * @since  2.9.0
+     */
+    public function buildAstUnionType();
 
     /**
      * Builds a new literal node.

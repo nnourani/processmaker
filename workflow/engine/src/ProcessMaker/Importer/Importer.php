@@ -191,6 +191,7 @@ abstract class Importer
                             $name = $name . ' ' . date('Y-m-d H:i:s');
                         }
                     }
+                    $this->importData["tables"]["workflow"]["process"][0]["PRO_CREATE_DATE"] = $obj->getProCreateDate();
                 }
                 //Shouldn't generate new UID for all objects
                     try {

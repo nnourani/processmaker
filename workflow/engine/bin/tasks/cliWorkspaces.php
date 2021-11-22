@@ -1,6 +1,8 @@
 <?php
 
+use ProcessMaker\BusinessModel\WebEntry;
 use ProcessMaker\Core\JobsManager;
+use ProcessMaker\Model\Delegation;
 use ProcessMaker\Model\Process;
 use ProcessMaker\Validation\MySQL57;
 
@@ -375,6 +377,40 @@ EOT
 );
 CLI::taskArg('fontFileName', false);
 CLI::taskRun('documents_remove_font');
+
+/**
+ * Add +async option to scheduler commands in table SCHEDULER.
+ */
+CLI::taskName('add-async-option-to-scheduler-commands');
+CLI::taskDescription(<<<EOT
+    Add +async option to scheduler commands in table SCHEDULER.
+EOT
+);
+CLI::taskArg('workspace');
+CLI::taskRun('add_async_option_to_scheduler_commands');
+
+/**
+ * Convert Web Entries v1.0 to v2.0 for BPMN processes in order to deprecate the old version.
+ */
+CLI::taskName('convert-old-web-entries');
+CLI::taskDescription(<<<EOT
+Convert Web Entries v1.0 to v2.0 for BPMN processes in order to deprecate the old version.
+EOT
+);
+CLI::taskRun('convert_old_web_entries');
+
+/**
+ * Populate the column APP_DELEGATION.DEL_TITLE with the case title APPLICATION.APP_TITLE
+ */
+CLI::taskName('migrate-case-title-to-threads');
+CLI::taskDescription(<<<EOT
+Populate the new column APPLICATION.APP_TITLE into the APP_DELEGATION table
+EOT
+);
+CLI::taskArg('WORKSPACE', false);
+CLI::taskArg('caseNumberFrom', true);
+CLI::taskArg('caseNumberTo', true);
+CLI::taskRun('migrate_case_title_to_threads');
 
 /**
  * Function run_info
@@ -1070,7 +1106,7 @@ function regenerate_pmtable_classes($args, $opts)
  * @param array $opts
  *
  * @return void
-*/
+ */
 function run_clear_dyn_content_history_data($args, $opts)
 {
     $workspaces = get_workspaces_from_args($args);
@@ -1093,7 +1129,8 @@ function run_clear_dyn_content_history_data($args, $opts)
  * @return void
  * @see workflow/engine/bin/tasks/cliWorkspaces.php CLI::taskRun()
  */
-function run_sync_forms_with_info_from_input_documents($args, $opts) {
+function run_sync_forms_with_info_from_input_documents($args, $opts)
+{
     if (count($args) === 1) {
         //This variable is not defined and does not involve its value in this
         //task, it is removed at the end of the method.
@@ -1385,4 +1422,77 @@ function documents_remove_font($args)
         // Display the error message
         CLI::logging($e->getMessage() . PHP_EOL . PHP_EOL);
     }
+}
+
+/**
+ * Add +async option to scheduler commands in table SCHEDULER.
+ * @param array $args
+ * @param string $opts
+ */
+function add_async_option_to_scheduler_commands($args, $opts)
+{
+    if (count($args) === 1) {
+        Bootstrap::setConstantsRelatedWs($args[0]);
+        $workspaceTools = new WorkspaceTools($args[0]);
+
+        CLI::logging("> Adding +async option to scheduler commands...\n");
+        $start = microtime(true);
+        $workspaceTools->addAsyncOptionToSchedulerCommands(true);
+        CLI::logging("<*>   Adding +async option to scheduler commands took " . (microtime(true) - $start) . " seconds.\n");
+    } else {
+        $workspaces = get_workspaces_from_args($args);
+        foreach ($workspaces as $workspace) {
+            passthru(PHP_BINARY . ' processmaker add-async-option-to-scheduler-commands ' . $workspace->name);
+        }
+    }
+}
+
+/**
+ * Convert Web Entries v1.0 to v2.0 for BPMN processes in order to deprecate the old version.
+ *
+ * @param array $args
+ */
+function convert_old_web_entries($args)
+{
+    try {
+        if (!empty($args)) {
+            // Print initial message
+            $start = microtime(true);
+            CLI::logging("> Converting Web Entries v1.0 to v2.0 for BPMN processes...\n");
+
+            // Set workspace constants and initialize DB connection
+            Bootstrap::setConstantsRelatedWs($args[0]);
+            Propel::init(PATH_CONFIG . 'databases.php');
+
+            // Convert Web Entries
+            WebEntry::convertFromV1ToV2();
+
+            // Print last message
+            $stop = microtime(true);
+            CLI::logging("<*>   Converting Web Entries v1.0 to v2.0 for BPMN processes data took " . ($stop - $start) . " seconds.\n");
+        } else {
+            // If a workspace is not specified, get all available workspaces in the server
+            $workspaces = get_workspaces_from_args($args);
+
+            // Execute the command for each workspace
+            foreach ($workspaces as $workspace) {
+                passthru(PHP_BINARY . ' processmaker convert-old-web-entries ' . $workspace->name);
+            }
+        }
+    } catch (Exception $e) {
+        // Display the error message
+        CLI::logging($e->getMessage() . PHP_EOL . PHP_EOL);
+    }
+}
+
+/**
+ * Populate the new column APPLICATION.APP_TITLE into the APP_DELEGATION table
+ * 
+ * @param array $args
+ */
+function migrate_case_title_to_threads($args)
+{
+    //The constructor requires an argument, so we send an empty value in order to use the class.
+    $workspaceTools = new WorkspaceTools('');
+    $workspaceTools->migrateCaseTitleToThreads($args);
 }

@@ -18,7 +18,6 @@ use ProcessMaker\Plugins\PluginRegistry;
  */
 /**
  *
- * @author hugo loza
  * @package workflow.engine.classes.model
  */
 class AppFolder extends BaseAppFolder
@@ -314,6 +313,9 @@ class AppFolder extends BaseAppFolder
         $oCriteria->addSelectColumn( AppDocumentPeer::APP_DOC_STATUS_DATE);
         $oCriteria->addSelectColumn( AppDocumentPeer::APP_DOC_FIELDNAME);
         $oCriteria->addSelectColumn(AppDocumentPeer::APP_DOC_DRIVE_DOWNLOAD);
+        $oCriteria->addJoin(AppDocumentPeer::APP_UID, ApplicationPeer::APP_UID, Criteria::LEFT_JOIN);
+        $oCriteria->add($oCriteria->getNewCriterion(ApplicationPeer::APP_NUMBER, 0, Criteria::GREATER_THAN)->
+            addOr($oCriteria->getNewCriterion(AppDocumentPeer::APP_UID, '00000000000000000000000000000000', Criteria::LIKE)));
 
         if ((is_array( $docIdFilter )) && (count( $docIdFilter ) > 0)) {
             //Search by App Doc UID no matter what Folder it is

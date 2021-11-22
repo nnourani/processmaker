@@ -35,17 +35,17 @@
         "laravel/framework": "5.7.*",
         "luracast/restler": "3.0",
         "bshaffer/oauth2-server-php": "v1.0",
-        "colosa/pmui": "release/3.5.0-dev",
-        "colosa/michelangelofe": "release/3.5.0-dev",
-        "colosa/pmdynaform": "release/3.5.0-dev",
-        "colosa/taskscheduler": "release/1.0.0-dev",
+        "colosa/pmui": "release/3.7.0-dev",
+        "colosa/michelangelofe": "release/3.7.0-dev",
+        "colosa/pmdynaform": "release/3.7.0-dev",
+        "colosa/taskscheduler": "release/1.0.2-dev",
         "google/apiclient": "1.1.6",
         "dapphp/securimage": "^3.6",
         "psr/log": "1.0.0",
         "monolog/monolog": "1.19.0",
         "geshi/geshi": "dev-master",
         "libchart/libchart": "1.4.0",
-        "phpmailer/phpmailer": "5.2.27",
+        "phpmailer/phpmailer": "^6.4",
         "pear/archive_tar": "1.4.*",
         "pear/console_getopt": "1.4.*",
         "typo3/class-alias-loader": "^1.0",
@@ -62,7 +62,9 @@
         "fzaninotto/faker": "^1.7",
         "predis/predis": "1.1.1",
         "phpmyadmin/sql-parser": "^5.3",
-        "aws/aws-sdk-php": "~3.0"
+        "aws/aws-sdk-php": "~3.0",
+        "cretueusebiu/laravel-javascript": "^0.2.1",
+        "stevenmaguire/oauth2-microsoft": "^2.2"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^6.3",
@@ -78,7 +80,7 @@
             "ProcessMaker\\": "workflow/engine/src"
         },
         "psr-4": {
-                "App\\": "app/",
+            "App\\": "app/",
             "Maveriks\\": "framework/src/Maveriks/",
             "Tests\\": "tests/"
         },

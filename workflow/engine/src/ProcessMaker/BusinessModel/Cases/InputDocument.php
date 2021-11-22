@@ -560,7 +560,9 @@ class InputDocument
             header("Content-Description: File Transfer");
 
             if ($fp = fopen($realPath, 'rb')) {
-                ob_end_clean();
+                if (ob_get_contents()) {
+                    ob_end_clean();
+                }
                 while (!feof($fp) and (connection_status() == 0)) {
                     print(fread($fp, 8192));
                     flush();

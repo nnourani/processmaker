@@ -206,7 +206,7 @@ EOT;
         $args = $argv;
         $cliname = array_shift( $args );
         $taskName = array_shift( $args );
-        while ($taskName{0} == '-') {
+        while ($taskName[0] == '-') {
             $taskName = array_shift( $args );
         }
         if (! $taskName) {

@@ -785,6 +785,12 @@ class adminProxy extends HttpProxyController
         $width        = "100%";
         $upload       = new ReplacementLogo();
         $aPhotoSelect = $upload->getNameLogo($_SESSION['USER_LOGGED']);
+        if (!is_array($aPhotoSelect)) {
+            $aPhotoSelect = [];
+        }
+        if (!isset($aPhotoSelect['DEFAULT_LOGO_NAME'])) {
+            $aPhotoSelect['DEFAULT_LOGO_NAME'] = '';
+        }
         $sPhotoSelect = trim($aPhotoSelect['DEFAULT_LOGO_NAME']);
         $check        = '';
         $ainfoSite    = explode("/", $_SERVER["REQUEST_URI"]);

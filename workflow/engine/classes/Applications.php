@@ -239,6 +239,11 @@ class Applications
         return $result;
     }
 
+    /**
+     * Function for get all cases
+     *
+     * @deprecated Class deprecated in Release 3.6.x
+     */
     public function getAll(
         $userUid,
         $start = null,

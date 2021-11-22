@@ -43,6 +43,7 @@
 
 namespace PDepend\Source\AST;
 
+use InvalidArgumentException;
 use PDepend\Source\ASTVisitor\ASTVisitor;
 
 /**
@@ -65,6 +66,31 @@ use PDepend\Source\ASTVisitor\ASTVisitor;
  */
 class ASTArguments extends AbstractASTNode
 {
+    /**
+     * Rather the given arguments list can still take one more argument.
+     *
+     * @return bool
+     */
+    public function acceptsMoreArguments()
+    {
+        return true;
+    }
+
+    /**
+     * This method adds a new child node to this node instance.
+     *
+     * @param ASTNode $node
+     * @return void
+     */
+    public function addChild(ASTNode $node)
+    {
+        if (!$this->acceptsMoreArguments()) {
+            throw new InvalidArgumentException('No more arguments allowed.');
+        }
+
+        parent::addChild($node);
+    }
+
     /**
      * Accept method of the visitor design pattern. This method will be called
      * by a visitor during tree traversal.

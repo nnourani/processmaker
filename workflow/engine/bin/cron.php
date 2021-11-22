@@ -13,15 +13,16 @@ try {
     $osIsLinux = strtoupper(substr(PHP_OS, 0, 3)) != 'WIN';
 
     $arrayCronConfig = [
-        'cron'             => ['title' => 'CRON'],
-        'ldapcron'         => ['title' => 'LDAP Advanced CRON'],
+        'cron' => ['title' => 'CRON'],
+        'ldapcron' => ['title' => 'LDAP Advanced CRON'],
         'messageeventcron' => ['title' => 'Message-Event CRON'],
         'timereventcron'   => ['title' => 'Timer-Event CRON'],
-        'sendnotificationscron' => ['title' => 'Send-Notifications CRON']
+        'sendnotificationscron' => ['title' => 'Send-Notifications CRON'],
+        'webentriescron'   => ['title' => 'Web Entries CRON']
     ];
 
     //Define constants
-    define('PATH_SEP', ($osIsLinux)? '/' : '\\');
+    define('PATH_SEP', ($osIsLinux) ? '/' : '\\');
 
     $arrayPathToCron = [];
     $flagPathToCron = false;
@@ -51,8 +52,8 @@ try {
 
     $pathOutTrunk = implode(PATH_SEP, $arrayPathToCron) . PATH_SEP;
 
-    define('PATH_HOME',     $pathHome);
-    define('PATH_TRUNK',    $pathTrunk);
+    define('PATH_HOME', $pathHome);
+    define('PATH_TRUNK', $pathTrunk);
     define('PATH_OUTTRUNK', $pathOutTrunk);
 
     //Check deprecated files
@@ -86,20 +87,20 @@ try {
 
     $arraySystemConfiguration = System::getSystemConfiguration();
 
-    $e_all = (defined('E_DEPRECATED'))?            E_ALL  & ~E_DEPRECATED : E_ALL;
-    $e_all = (defined('E_STRICT'))?                $e_all & ~E_STRICT     : $e_all;
-    $e_all = ($arraySystemConfiguration['debug'])? $e_all                 : $e_all & ~E_NOTICE;
+    $e_all = (defined('E_DEPRECATED')) ? E_ALL & ~E_DEPRECATED : E_ALL;
+    $e_all = (defined('E_STRICT')) ? $e_all & ~E_STRICT : $e_all;
+    $e_all = ($arraySystemConfiguration['debug']) ? $e_all : $e_all & ~E_NOTICE;
 
     //In community version the default value is 0
-    $systemUtcTimeZone = (int)($arraySystemConfiguration['system_utc_time_zone']) == 1;
+    $systemUtcTimeZone = (int) ($arraySystemConfiguration['system_utc_time_zone']) == 1;
 
     app()->useStoragePath(realpath(PATH_DATA));
     app()->make(Kernel::class)->bootstrap();
     restore_error_handler();
     //Do not change any of these settings directly, use env.ini instead
-    ini_set('display_errors',  $arraySystemConfiguration['debug']);
+    ini_set('display_errors', $arraySystemConfiguration['debug']);
     ini_set('error_reporting', $e_all);
-    ini_set('short_open_tag',  'On');
+    ini_set('short_open_tag', 'On');
     ini_set('default_charset', 'UTF-8');
     ini_set('soap.wsdl_cache_enabled', $arraySystemConfiguration['wsdl_cache']);
     ini_set('date.timezone', $systemUtcTimeZone ? 'UTC' : $arraySystemConfiguration['time_zone']);
@@ -128,7 +129,8 @@ try {
 
     if (in_array($arrayCommandOption['force'], $argv)) {
         unset($argv[array_search($arrayCommandOption['force'], $argv)]);
-
+        //reindex keys
+        $argv = array_values($argv);
         $force = true;
     }
 
@@ -137,8 +139,8 @@ try {
         //Get data of CRON file
         $arrayCron = unserialize(trim(file_get_contents(PATH_DATA . $cronName)));
 
-        $flagIsRunning = (bool)((isset($arrayCron['flagIsRunning']))? $arrayCron['flagIsRunning'] : $arrayCron['bCronIsRunning']);
-        $lastExecution = (isset($arrayCron['lastExecution']))? $arrayCron['lastExecution'] : $arrayCron['sLastExecution'];
+        $flagIsRunning = (bool) ((isset($arrayCron['flagIsRunning'])) ? $arrayCron['flagIsRunning'] : $arrayCron['bCronIsRunning']);
+        $lastExecution = (isset($arrayCron['lastExecution'])) ? $arrayCron['lastExecution'] : $arrayCron['sLastExecution'];
     }
 
     if (!$force && $osIsLinux) {
@@ -168,9 +170,9 @@ try {
 
         try {
             $cronSinglePath = PATH_CORE . 'bin' . PATH_SEP . 'cron_single.php';
-            $workspace  = '';
-            $date       = '';
-            $argvx      = '';
+            $workspace = '';
+            $date = '';
+            $argvx = '';
 
             for ($i = 1; $i <= count($argv) - 1; $i++) {
                 if (!isset($argv[$i])) {
@@ -189,7 +191,7 @@ try {
                     }
 
                     if (!$flagDate) {
-                        $argvx = $argvx . (($argvx != '')? ' ' : '') . $argv[$i];
+                        $argvx = $argvx . (($argvx != '') ? ' ' : '') . $argv[$i];
                     }
                 }
             }
@@ -208,8 +210,8 @@ try {
                         if (is_dir(PATH_DB . $entry)) {
                             if (file_exists(PATH_DB . $entry . PATH_SEP . 'db.php')) {
                                 $counterw++;
-
-                                passthru('php -f "' . $cronSinglePath . '" "' . base64_encode(PATH_HOME) . '" "' . base64_encode(PATH_TRUNK) . '" "' . base64_encode(PATH_OUTTRUNK) . '" ' . $cronName . ' ' . $entry . ' "' . $date . '" ' . $argvx);
+                                $command = 'php -f "' . $cronSinglePath . '" "' . base64_encode(PATH_HOME) . '" "' . base64_encode(PATH_TRUNK) . '" "' . base64_encode(PATH_OUTTRUNK) . '" ' . $cronName . ' ' . $entry . ' "' . $date . '" ' . $argvx;
+                                passthru($command);
                             }
                         }
                     }
@@ -220,8 +222,8 @@ try {
                 }
 
                 $counterw++;
-
-                passthru('php -f "' . $cronSinglePath . '" "' . base64_encode(PATH_HOME) . '" "' . base64_encode(PATH_TRUNK) . '" "' . base64_encode(PATH_OUTTRUNK) . '" ' . $cronName . ' ' . $workspace . ' "' . $date . '" ' . $argvx);
+                $command = 'php -f "' . $cronSinglePath . '" "' . base64_encode(PATH_HOME) . '" "' . base64_encode(PATH_TRUNK) . '" "' . base64_encode(PATH_OUTTRUNK) . '" ' . $cronName . ' ' . $workspace . ' "' . $date . '" ' . $argvx;
+                passthru($command);
             }
 
             eprintln('Finished ' . $counterw . ' workspaces processed');
@@ -234,13 +236,13 @@ try {
         file_put_contents(PATH_DATA . $cronName, serialize($arrayCron));
     } else {
         eprintln('The ' . $arrayCronConfig[$cronName]['title'] . ' is running, please wait for it to finish' . "\n" . 'Started in ' . $lastExecution);
-        eprintln('If do you want force the execution use the option "' . $arrayCommandOption['force'] . '", example: php -f ' . $cronName . '.php +wworkflow ' . $arrayCommandOption['force'] ,'green');
+        eprintln('If do you want force the execution use the option "' . $arrayCommandOption['force'] . '", example: php -f ' . $cronName . '.php +wworkflow ' . $arrayCommandOption['force'], 'green');
     }
 
     echo 'Done!' . "\n";
 } catch (Exception $e) {
     $token = strtotime("now");
     PMException::registerErrorLog($e, $token);
-    G::outRes( G::LoadTranslation("ID_EXCEPTION_LOG_INTERFAZ", array($token)) . "\n" );
+    G::outRes(G::LoadTranslation("ID_EXCEPTION_LOG_INTERFAZ", [$token]) . "\n");
 }
 

@@ -44,6 +44,7 @@
 namespace PDepend\Source\Language\PHP;
 
 use PDepend\Source\AST\ASTArguments;
+use PDepend\Source\AST\ASTConstant;
 use PDepend\Source\AST\ASTValue;
 use PDepend\Source\Parser\UnexpectedTokenException;
 use PDepend\Source\Tokenizer\FullTokenizer;
@@ -301,7 +302,7 @@ abstract class PHPParserVersion56 extends PHPParserVersion55
     /**
      * In this method we implement parsing of PHP 5.6 specific expressions.
      *
-     * @return \PDepend\Source\AST\ASTNode
+     * @return \PDepend\Source\AST\ASTNode|null
      * @since 2.3
      */
     protected function parseExpressionVersion56()
@@ -323,6 +324,16 @@ abstract class PHPParserVersion56 extends PHPParserVersion55
 
                 return $expr;
         }
+
+        return null;
+    }
+
+    /**
+     * @return ASTConstant
+     */
+    protected function parseConstantArgument(ASTConstant $constant, ASTArguments $arguments)
+    {
+        return $constant;
     }
 
     /**
@@ -333,23 +344,19 @@ abstract class PHPParserVersion56 extends PHPParserVersion55
     {
         while (true) {
             $this->consumeComments();
+
             if (Tokens::T_ELLIPSIS === $this->tokenizer->peek()) {
                 $this->consumeToken(Tokens::T_ELLIPSIS);
             }
 
-            $this->consumeComments();
-            if (null === ($expr = $this->parseOptionalExpression())) {
-                break;
+            $expr = $this->parseOptionalExpression();
+
+            if ($expr instanceof ASTConstant) {
+                $expr = $this->parseConstantArgument($expr, $arguments);
             }
 
-            $arguments->addChild($expr);
-
-            $this->consumeComments();
-            if (Tokens::T_COMMA === $this->tokenizer->peek()) {
-                $this->consumeToken(Tokens::T_COMMA);
-                $this->consumeComments();
-
-                continue;
+            if (!$expr || !$this->addChildToList($arguments, $expr)) {
+                break;
             }
         }
 
@@ -387,7 +394,7 @@ abstract class PHPParserVersion56 extends PHPParserVersion55
             return false;
         }
 
-        for($i = 0; $type = $this->tokenizer->peekAt($i); $i++) {
+        for ($i = 0; $type = $this->tokenizer->peekAt($i); $i++) {
             switch ($type) {
                 case Tokens::T_COMMENT:
                 case Tokens::T_DOC_COMMENT:

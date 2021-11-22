@@ -250,7 +250,7 @@ class ReportTables
                                 }
                                 $string = $appData[$field['sFieldName']];
                                 if (is_array($string)) {
-                                    $string = implode($string, ",");
+                                    $string = implode(",", $string);
                                 }
                                 $query .= ",'" . (isset($appData[$field['sFieldName']]) ? mysqli_real_escape_string($connection->getResource(), $string) : '') . "'";
                                 break;

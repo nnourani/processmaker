@@ -84,6 +84,21 @@ class TaskSchedulerBM
             "description" => "ID_TIMER_EVENT_DESC"
         ],
         [
+            "title" => "ID_CLEAN_WEBENTRIES",
+            "enable" => "0",
+            "service" => "",
+            "category" => "case_actions",
+            "file" => "workflow/engine/bin/webentriescron.php",
+            "filew" => "workflow\\engine\bin\\webentriescron.php",
+            "startingTime" => null,
+            "endingTime" => null,
+            "timezone" => null,
+            "everyOn" => "1",
+            "interval" => "week",
+            "expression" => "0 20 * * 5",
+            "description" => "ID_CLEAN_WEBENTRIES_DESC"
+        ],
+        [
             "title" => "ID_TASK_SCHEDULER_CASE_EMAILS",
             "enable" => "1",
             "service" => "emails",

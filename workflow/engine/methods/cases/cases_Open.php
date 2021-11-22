@@ -1,5 +1,7 @@
 <?php
 
+use ProcessMaker\Model\Process;
+
 /**
  * cases_Open.php
  *
@@ -77,6 +79,15 @@ try {
 
     //loading application data
     $fieldCase = $caseInstance->loadCase($appUid, $delIndex);
+
+    if (!Process::isActive($fieldCase['PRO_UID'], 'PRO_UID')) {
+        $G_PUBLISH = new Publisher();
+        $G_PUBLISH->AddContent('xmlform', 'xmlform', 'login/showMessage', '', [
+            'MESSAGE' => G::LoadTranslation('ID_THE_WEBSITE_CAN_NOT_BE_REACHED')
+        ]);
+        G::RenderPage('publish', 'blank');
+        exit();
+    }
 
     if (!isset($_SESSION['CURRENT_TASK'])) {
         $_SESSION['CURRENT_TASK'] = $fieldCase['TAS_UID'];

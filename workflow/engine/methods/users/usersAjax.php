@@ -14,6 +14,18 @@ try {
 
     // Executing the action
     switch ($action) {
+        case 'timeZoneParameters':
+            $arraySystemConfiguration = System::getSystemConfiguration('', '', config("system.workspace"));
+
+            $data = array_map(function ($value) {
+                return ["value" => $value, "text" => $value];
+            }, DateTimeZone::listIdentifiers());
+            $result = [
+                "timeZoneList" => $data,
+                "systemTimeZone" => $arraySystemConfiguration['time_zone']
+            ];
+            print(G::json_encode($result));
+            break;
         case 'countryList':
             $c = new Criteria();
             $c->add(IsoCountryPeer::IC_UID, null, Criteria::ISNOTNULL);
@@ -200,9 +212,6 @@ try {
                     } catch (Exception $e) {
                         $result->success = false;
                         $result->fileError = true;
-
-                        echo G::json_encode($result);
-                        exit(0);
                     }
                 }
 
@@ -376,6 +385,18 @@ try {
                         break;
                 }
             }
+            //remove duplicate elements
+            foreach ($rows as &$row) {
+                $row = json_encode($row);
+            }
+            $rows = array_unique($rows);
+            foreach ($rows as &$row) {
+                $row = json_decode($row);
+            }
+            //sort items by name for pretty view
+            usort($rows, function($a, $b) {
+                return $a->name > $b->name;
+            });
             print(G::json_encode($rows));
             break;
         case 'defaultCasesMenuOptionList':
@@ -412,7 +433,7 @@ try {
                 $fields['DESCRIPTION'] = G::LoadTranslation('ID_PASSWORD_COMPLIES_POLICIES') . '</span>';
                 $fields['STATUS'] = true;
             }
-            $span = '<span style="color: ' . $color . '; font: 9px tahoma,arial,helvetica,sans-serif;">';
+            $span = '<span style="color: ' . $color . '; ">';
             $gif = '<img width="13" height="13" border="0" src="' . $img . '">';
             $fields['DESCRIPTION'] = $span . $gif . $fields['DESCRIPTION'];
             print(G::json_encode($fields));
@@ -449,7 +470,7 @@ try {
                 $response['exists'] = false;
             }
 
-            $span = '<span style="color: ' . $color . '; font: 9px tahoma,arial,helvetica,sans-serif;">';
+            $span = '<span style="color: ' . $color . '; ">';
             $gif = '<img width="13" height="13" border="0" src="' . $img . '">';
             $response['descriptionText'] = $span . $gif . $text . '</span>';
             echo G::json_encode($response);

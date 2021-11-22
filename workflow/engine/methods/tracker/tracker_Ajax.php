@@ -264,7 +264,7 @@ try {
                     $oCriteria = new Criteria('workflow');
                     $oCriteria->add(AppDelegationPeer::APP_UID, $_SESSION['APPLICATION']);
                     $oCriteria->add(AppDelegationPeer::TAS_UID, $aTasks, Criteria::IN);
-                    $oCriteria->add($oCriteria->getNewCriterion(AppDelegationPeer::DEL_FINISH_DATE, null, Criteria::ISNULL)->addOr($oCriteria->getNewCriterion(AppDelegationPeer::DEL_FINISH_DATE, '')));
+                    $oCriteria->add($oCriteria->getNewCriterion(AppDelegationPeer::DEL_FINISH_DATE, null, Criteria::ISNULL)->addOr($oCriteria->getNewCriterion(AppDelegationPeer::DEL_FINISH_DATE, '0000-00-00 00:00:00')));
                     if (AppDelegationPeer::doCount($oCriteria) > 0) {
                         $oStage->color = '#FF0000';
                     } else {

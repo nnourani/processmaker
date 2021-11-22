@@ -79,7 +79,7 @@ class Xml extends AbstractASTVisitor implements CodeAwareGenerator, FileAwareGen
     /**
      * The raw {@link \PDepend\Source\AST\ASTNamespace} instances.
      *
-     * @var \PDepend\Source\AST\ASTArtifactList
+     * @var \PDepend\Source\AST\ASTArtifactList<\PDepend\Source\AST\ASTNamespace>
      */
     protected $code = null;
 
@@ -130,7 +130,7 @@ class Xml extends AbstractASTVisitor implements CodeAwareGenerator, FileAwareGen
     /**
      * Sets the context code nodes.
      *
-     * @param  \PDepend\Source\AST\ASTArtifactList $artifacts
+     * @param  \PDepend\Source\AST\ASTArtifactList<\PDepend\Source\AST\ASTNamespace> $artifacts
      * @return void
      */
     public function setArtifacts(ASTArtifactList $artifacts)
@@ -220,6 +220,10 @@ class Xml extends AbstractASTVisitor implements CodeAwareGenerator, FileAwareGen
         }
 
         $xml = end($this->xmlStack);
+        if (!$xml) {
+            return;
+        }
+
         $doc = $xml->ownerDocument;
 
         $typeXml = $doc->createElement($typeIdentifier);
@@ -263,6 +267,10 @@ class Xml extends AbstractASTVisitor implements CodeAwareGenerator, FileAwareGen
     public function visitNamespace(ASTNamespace $namespace)
     {
         $xml = end($this->xmlStack);
+        if (!$xml) {
+            return;
+        }
+
         $doc = $xml->ownerDocument;
 
         $packageXml = $doc->createElement('package');

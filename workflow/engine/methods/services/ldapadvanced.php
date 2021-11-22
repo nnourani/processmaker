@@ -66,11 +66,13 @@ class ldapadvancedClassCron
         $plugin->frontEndShow("START");
 
         $plugin->debugLog("START");
+        $plugin->stdLog(null, "cron execution started");
 
         foreach ($arrayAuthenticationSource as $value) {
             $arrayAuthenticationSourceData = $value;
             try {
                 $plugin->debugLog("ldapadvanced.php > function executeCron() > foreach > \$arrayAuthenticationSourceData ---->\n" . print_r($arrayAuthenticationSourceData, true));
+                $plugin->stdLog(null, "AuthenticationSourceData", ["result" => $arrayAuthenticationSourceData]);
 
                 $plugin->sAuthSource = $arrayAuthenticationSourceData["AUTH_SOURCE_UID"];
                 $plugin->ldapcnn = null;
@@ -84,6 +86,10 @@ class ldapadvancedClassCron
                 $plugin->frontEndShow("TEXT", "Authentication Source: " . $arrayAuthenticationSourceData["AUTH_SOURCE_NAME"]);
 
                 $plugin->log(null, "Executing cron for Authentication Source: " . $arrayAuthenticationSourceData["AUTH_SOURCE_NAME"]);
+                $context = [
+                    "AUTH_SOURCE_NAME" => $arrayAuthenticationSourceData["AUTH_SOURCE_NAME"]
+                ];
+                $plugin->stdLog(null, "authentication source", $context);
 
                 //Get all departments from Ldap/ActiveDirectory and build a hierarchy using dn (ou->ou parent)
                 $aLdapDepts = $plugin->searchDepartments();
@@ -92,6 +98,7 @@ class ldapadvancedClassCron
                 $aRegisteredDepts = $plugin->getRegisteredDepartments($aLdapDepts, $aDepartments);
 
                 $plugin->debugLog("ldapadvanced.php > function executeCron() > foreach > \$aRegisteredDepts ---->\n" . print_r($aRegisteredDepts, true));
+                $plugin->stdLog(null, "RegisteredDepartments", ["result" => $aRegisteredDepts]);
 
                 //Get all group from Ldap/ActiveDirectory
                 $aLdapGroups = $plugin->searchGroups();
@@ -100,10 +107,10 @@ class ldapadvancedClassCron
                 $aRegisteredGroups = $plugin->getRegisteredGroups($aLdapGroups, $aGroups);
 
                 $plugin->debugLog("ldapadvanced.php > function executeCron() > foreach > \$aRegisteredGroups ---->\n" . print_r($aRegisteredGroups, true));
+                $plugin->stdLog(null, "RegisteredGroups", ["result" => $aRegisteredGroups]);
 
                 //Get all users from Removed OU
                 $this->usersRemovedOu = $plugin->getUsersFromRemovedOu($arrayAuthenticationSourceData);
-                $plugin->deactiveArrayOfUsers($this->usersRemovedOu);
 
                 //Variables
                 $this->deletedRemoved = count($this->usersRemovedOu);
@@ -136,6 +143,7 @@ class ldapadvancedClassCron
                 $count = 0;
 
                 $plugin->debugLog("ldapadvanced.php > function executeCron() > foreach > \$numDepartments ----> $numDepartments");
+                $plugin->stdLog(null, "NumberDepartments", ["result" => $numDepartments]);
 
                 foreach ($aRegisteredDepts as $registeredDept) {
                     $count++;
@@ -155,12 +163,21 @@ class ldapadvancedClassCron
                 $plugin->frontEndShow("TEXT", $logResults);
 
                 $plugin->log(null, $logResults);
+                $context = [
+                    "existingUsers" => $this->dAlready,
+                    "moved" => $this->dMoved,
+                    "impossible" => $this->dImpossible,
+                    "created" => $this->dCreated,
+                    "removed" => $this->dRemoved
+                ];
+                $plugin->stdLog(null, "departments", $context);
 
                 //Group - Synchronize Users
                 $numGroups = count($aRegisteredGroups);
                 $count = 0;
 
                 $plugin->debugLog("ldapadvanced.php > function executeCron() > foreach > \$numGroups ----> $numGroups");
+                $plugin->stdLog(null, "NumberGroups", ["result" => $numGroups]);
 
                 foreach ($aRegisteredGroups as $registeredGroup) {
                     $count++;
@@ -180,6 +197,14 @@ class ldapadvancedClassCron
                 $plugin->frontEndShow("TEXT", $logResults);
 
                 $plugin->log(null, $logResults);
+                $context = [
+                    "existingUsers" => $this->gAlready,
+                    "moved" => $this->gMoved,
+                    "impossible" => $this->gImpossible,
+                    "created" => $this->gCreated,
+                    "removed" => $this->gRemoved
+                ];
+                $plugin->stdLog(null, "groups", $context);
 
                 //Manager
                 $plugin->clearManager($this->managersToClear);
@@ -317,35 +342,68 @@ class ldapadvancedClassCron
                 $plugin->frontEndShow("TEXT", $logResults);
 
                 $plugin->log(null, $logResults);
+                $context = [
+                    "deletedRemoved" => $this->deletedRemoved
+                ];
+                $plugin->stdLog(null, "deleted/removed users", $context);
 
                 if ($this->deletedRemoved > 0) {
                     $plugin->log(null, "Deleted/Removed Users: ");
                     $plugin->log(null, $this->deletedRemovedUsers);
+                    $context = [
+                        "deletedRemovedUsers" => $this->deletedRemovedUsers
+                    ];
+                    $plugin->stdLog(null, "deleted/removed users", $context);
                 }
 
                 if ($this->dAlready + $this->gAlready > 0) {
                     $plugin->log(null, "Existing Users: ");
                     $plugin->log(null, $this->dAlreadyUsers . " " . $this->gAlreadyUsers);
+                    $context = [
+                        "dAlreadyUsers" => $this->dAlreadyUsers,
+                        "gAlreadyUsers" => $this->gAlreadyUsers
+                    ];
+                    $plugin->stdLog(null, "existing users", $context);
                 }
 
                 if ($this->dMoved + $this->gMoved > 0) {
                     $plugin->log(null, "Moved Users: ");
                     $plugin->log(null, $this->dMovedUsers . " " . $this->gMovedUsers);
+                    $context = [
+                        "dMovedUsers" => $this->dMovedUsers,
+                        "gMovedUsers" => $this->gMovedUsers
+                    ];
+                    $plugin->stdLog(null, "moved users", $context);
                 }
 
                 if ($this->dImpossible + $this->gImpossible > 0) {
                     $plugin->log(null, "Impossible Users: ");
                     $plugin->log(null, $this->dImpossibleUsers . " " . $this->gImpossibleUsers);
+                    $context = [
+                        "dImpossibleUsers" => $this->dImpossibleUsers,
+                        "gImpossibleUsers" => $this->gImpossibleUsers
+                    ];
+                    $plugin->stdLog(null, "impossible users", $context);
                 }
 
                 if ($this->dCreated + $this->gCreated > 0) {
                     $plugin->log(null, "Created Users: ");
                     $plugin->log(null, $this->dCreatedUsers . " " . $this->gCreatedUsers);
+                    $context = [
+                        "dCreatedUsers" => $this->dCreatedUsers,
+                        "gCreatedUsers" => $this->gCreatedUsers
+                    ];
+                    $plugin->stdLog(null, "created users", $context);
                 }
 
                 if ($this->dRemoved + $this->gRemoved > 0) {
                     $plugin->log(null, "Removed Users: ");
                     $plugin->log(null, $this->dRemovedUsers . " " . $this->gRemovedUsers);
+                    $context = [
+                        "dRemovedUsers" => $this->dRemovedUsers,
+                        "gRemovedUsers" => $this->gRemovedUsers
+                    ];
+                    $plugin->stdLog(null, "removed users", $context);
                 }
 
                 //Print and log the managers assignments"s information
@@ -359,21 +417,31 @@ class ldapadvancedClassCron
                 $plugin->frontEndShow("TEXT", $logResults);
 
                 $plugin->log(null, $logResults);
+                $context = [
+                    "created" => count($newManagers) - count($movedManagers),
+                    "moved" => count($movedManagers),
+                    "removed" => count($deletedManagers) - count($movedManagers) + $this->deletedManager
+                ];
+                $plugin->stdLog(null, "managers assignments", $context);
 
                 //Update Users data based on the LDAP Server
                 $plugin->usersUpdateData($arrayAuthenticationSourceData["AUTH_SOURCE_UID"]);
+                $plugin->deactiveArrayOfUsers($this->usersRemovedOu);
             } catch (Exception $e) {
+                $plugin = new LdapAdvanced();
                 $message = $e->getMessage();
                 $context = [
                     'action' => 'ldapSynchronize',
                     'authSource' => $arrayAuthenticationSourceData
                 ];
+                $plugin->stdLog(null, $message, $context, "error");
                 Log::channel(':ldapSynchronize')->error($message, Bootstrap::context($context));
             }
         }
 
         $plugin->frontEndShow("END");
         $plugin->debugLog("END");
+        $plugin->stdLog(null, "cron execution finalized");
     }
 
     public function array_diff_assoc_recursive($array1, $array2)
@@ -423,6 +491,12 @@ class ldapadvancedClassCron
                 }
             }
         } catch (Exception $e) {
+            $plugin = new LdapAdvanced();
+            $message = $e->getMessage();
+            $context = [
+                "trace" => $e->getTrace()
+            ];
+            $plugin->stdLog(null, $message, $context, "error");
             throw $e;
         }
     }
@@ -438,15 +512,23 @@ class ldapadvancedClassCron
                 $group->removeUserOfGroup($groupUid, $userUid);
             }
         } catch (Exception $e) {
+            $plugin = new LdapAdvanced();
+            $message = $e->getMessage();
+            $context = [
+                "trace" => $e->getTrace()
+            ];
+            $plugin->stdLog(null, $message, $context, "error");
             throw $e;
         }
     }
 
     public function departmentSynchronizeUsers($ldapAdvanced, $numDepartments, $count, array $arrayDepartmentData)
     {
+        $plugin = new LdapAdvanced();
         try {
             $ldapAdvanced->debugLog("ldapadvanced.php > function departmentSynchronizeUsers() > START");
             $ldapAdvanced->debugLog("ldapadvanced.php > function departmentSynchronizeUsers() > \$arrayDepartmentData ---->\n" . print_r($arrayDepartmentData, true));
+            $plugin->stdLog(null, "department synchronize users started", ["result" => $arrayDepartmentData]);
 
             //Get users from ProcessMaker tables (for this Department)
             $ldapAdvanced->setArrayDepartmentUsers($arrayDepartmentData["DEP_UID"]); //INITIALIZE DATA
@@ -515,19 +597,28 @@ class ldapadvancedClassCron
             $this->dRemovedUsers = "";
 
             $ldapAdvanced->debugLog("ldapadvanced.php > function departmentSynchronizeUsers() > END");
+            $plugin->stdLog(null, "department synchronize users finalized");
 
             //Return all UID of Users synchronized in the Department (Return all UID of Users of this Department)
             return $arrayUserUid;
         } catch (Exception $e) {
+            $plugin = new LdapAdvanced();
+            $message = $e->getMessage();
+            $context = [
+                "trace" => $e->getTrace()
+            ];
+            $plugin->stdLog(null, $message, $context, "error");
             throw $e;
         }
     }
 
     public function groupSynchronizeUsers($ldapAdvanced, $numGroups, $count, array $arrayGroupData)
     {
+        $plugin = new LdapAdvanced();
         try {
             $ldapAdvanced->debugLog("ldapadvanced.php > function groupSynchronizeUsers() > START");
             $ldapAdvanced->debugLog("ldapadvanced.php > function groupSynchronizeUsers() > \$arrayGroupData ---->\n" . print_r($arrayGroupData, true));
+            $plugin->stdLog(null, "group synchronize users started", ["result" => $arrayGroupData]);
 
             //Get users from ProcessMaker tables (for this Group)
             $ldapAdvanced->setArrayGroupUsers($arrayGroupData["GRP_UID"]); //INITIALIZE DATA
@@ -596,10 +687,17 @@ class ldapadvancedClassCron
             $this->gRemovedUsers = "";
 
             $ldapAdvanced->debugLog("ldapadvanced.php > function groupSynchronizeUsers() > END");
+            $plugin->stdLog(null, "group synchronize users finalized");
 
             //Return all UID of Users synchronized in the Group (Return all UID of Users of this Group)
             return $arrayUserUid;
         } catch (Exception $e) {
+            $plugin = new LdapAdvanced();
+            $message = $e->getMessage();
+            $context = [
+                "trace" => $e->getTrace()
+            ];
+            $plugin->stdLog(null, $message, $context, "error");
             throw $e;
         }
     }

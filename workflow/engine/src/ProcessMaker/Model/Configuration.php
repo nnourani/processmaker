@@ -14,4 +14,6 @@ class Configuration extends Model
     public $timestamps = false;
     
     public $incrementing = false;
+
+    protected $fillable = ['CFG_UID', 'OBJ_UID', 'CFG_VALUE', 'PRO_UID', 'USR_UID', 'APP_UID'];
 }

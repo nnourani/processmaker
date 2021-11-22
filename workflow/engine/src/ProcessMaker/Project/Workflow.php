@@ -11,6 +11,7 @@ use Task as ClassesTask;
 use Route;
 use RoutePeer;
 
+use ProcessMaker\Model\ProcessCategory;
 use ProcessMaker\Util\Common;
 use ProcessMaker\Exception;
 use ProcessMaker\Util;
@@ -62,6 +63,8 @@ class Workflow extends Handler
         $data['USR_UID'] = array_key_exists('PRO_CREATE_USER', $data) ? $data['PRO_CREATE_USER'] : null;
         $data['PRO_TITLE'] = array_key_exists('PRO_TITLE', $data) ? trim($data['PRO_TITLE']) : "";
         $data['PRO_CATEGORY'] = array_key_exists('PRO_CATEGORY', $data) ? $data['PRO_CATEGORY'] : "";
+        $categoryId = ProcessCategory::getCategoryId($data['PRO_CATEGORY']);
+        $data['CATEGORY_ID'] = !is_null($categoryId) ? $categoryId : 0;
 
         try {
 

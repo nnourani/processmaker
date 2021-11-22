@@ -343,7 +343,7 @@ class Server implements iAuthenticate
         $request = \OAuth2\Request::createFromGlobals();
         $allowed = $this->server->verifyResourceRequest($request);
         $token = $this->server->getAccessTokenData($request);
-        self::$userId = $token['user_id'];
+        self::$userId = !empty($token['user_id']) ? $token['user_id'] : '';
         // Session handling to prevent session lose in other places like, home, admin, etc
         // when user is using the new designer that have not session because it is using only the API
 
@@ -415,7 +415,7 @@ class Server implements iAuthenticate
             $tokenData = $server->getAccessTokenData($request);
 
             // Set the User Uid
-            self::$userId = $tokenData['user_id'];
+            self::$userId = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
         }
         return self::$userId;
     }

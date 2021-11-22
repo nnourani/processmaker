@@ -325,7 +325,7 @@
               {name : 'DOC_VERSION'},
               {name : 'ORIGIN'},
               {name : 'CREATED_BY'},
-              {name : 'CREATE_DATE'}
+              {name : 'CREATE_DATE_LABEL'}
             ]
           }
         )
@@ -408,7 +408,7 @@
             {header: _("ID_VERSION"), dataIndex: 'DOC_VERSION', width: 70},
             {header: _("ID_ORIGIN_TASK"), dataIndex: 'ORIGIN', width: 70},
             {header: _("ID_CREATED_BY"), dataIndex: 'CREATED_BY', width: 70},
-            {header: _("ID_CREATE_DATE"), dataIndex: 'CREATE_DATE', width: 70,renderer:startDateRender}
+            {header: _("ID_CREATE_DATE"), dataIndex: 'CREATE_DATE_LABEL', width: 70}
 
           ]
         }),

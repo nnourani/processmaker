@@ -129,7 +129,7 @@ abstract class AbstractASTType extends AbstractASTArtifact
      * interface instance can store the associated tokens.
      *
      * @param  \PDepend\Util\Cache\CacheDriver $cache
-     * @return \PDepend\Source\AST\AbstractASTType
+     * @return $this
      */
     public function setCache(CacheDriver $cache)
     {
@@ -141,7 +141,7 @@ abstract class AbstractASTType extends AbstractASTArtifact
      * Sets the currently active builder context.
      *
      * @param  \PDepend\Source\Builder\BuilderContext $context
-     * @return \PDepend\Source\AST\AbstractASTType
+     * @return $this
      */
     public function setContext(BuilderContext $context)
     {
@@ -197,9 +197,10 @@ abstract class AbstractASTType extends AbstractASTArtifact
      * instance of the given <b>$targetType</b>. The returned value will be
      * <b>null</b> if no child exists for that.
      *
-     * @param string $targetType Searched class or interface type.
+     * @template T of \PDepend\Source\AST\ASTNode
+     * @param class-string<T> $targetType Searched class or interface type.
      *
-     * @return \PDepend\Source\AST\ASTNode|null
+     * @return T|null
      * @access private
      * @todo   Refactor $_methods property to getAllMethods() when it exists.
      */
@@ -226,10 +227,11 @@ abstract class AbstractASTType extends AbstractASTArtifact
     /**
      * Will find all children for the given type.
      *
-     * @param string $targetType The target class or interface type.
-     * @param array  $results    The found children.
+     * @template T of \PDepend\Source\AST\ASTNode
+     * @param class-string<T> $targetType The target class or interface type.
+     * @param T[]             $results    The found children.
      *
-     * @return \PDepend\Source\AST\ASTNode[]
+     * @return T[]
      * @access private
      * @todo   Refactor $_methods property to getAllMethods() when it exists.
      */
@@ -379,6 +381,7 @@ abstract class AbstractASTType extends AbstractASTArtifact
      * Sets the tokens for this type.
      *
      * @param \PDepend\Source\Tokenizer\Token[] $tokens
+     * @param Token|null $startToken
      * @return void
      */
     public function setTokens(array $tokens, Token $startToken = null)

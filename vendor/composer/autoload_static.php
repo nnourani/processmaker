@@ -4,22 +4,25 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit8879d522a352fc595fc110478e81e96d
+class ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2
 {
     public static $files = array (
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
-        '023d27dca8066ef29e6739335ea73bad' => __DIR__ . '/..' . '/symfony/polyfill-php70/bootstrap.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
+        '256c1545158fc915c75e51a931bdba60' => __DIR__ . '/..' . '/lcobucci/jwt/compat/class-aliases.php',
+        '0d273777b2b0d96e49fb3d800c6b0e81' => __DIR__ . '/..' . '/lcobucci/jwt/compat/json-exception-polyfill.php',
+        'd6b246ac924292702635bb2349f4a64b' => __DIR__ . '/..' . '/lcobucci/jwt/compat/lcobucci-clock-polyfill.php',
         'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
         'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
         'cf97c57bfe0f23854afd2f3818abb7a0' => __DIR__ . '/..' . '/zendframework/zend-diactoros/src/functions/create_uploaded_file.php',
@@ -64,10 +67,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         ),
         'S' => 
         array (
+            'Symfony\\Polyfill\\Php81\\' => 23,
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Polyfill\\Php73\\' => 23,
             'Symfony\\Polyfill\\Php72\\' => 23,
-            'Symfony\\Polyfill\\Php70\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Idn\\' => 26,
@@ -93,6 +96,7 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
             'Symfony\\Component\\CssSelector\\' => 30,
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
+            'Stevenmaguire\\OAuth2\\Client\\' => 28,
         ),
         'R' => 
         array (
@@ -108,6 +112,7 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
             'PhpParser\\' => 10,
             'PhpMyAdmin\\SqlParser\\' => 21,
             'PhpImap\\' => 8,
+            'PHPMailer\\PHPMailer\\' => 20,
             'PDepend\\' => 8,
         ),
         'O' => 
@@ -159,11 +164,13 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         ),
         'E' => 
         array (
+            'Eusebiu\\JavaScript\\' => 19,
             'Egulias\\EmailValidator\\' => 23,
         ),
         'D' => 
         array (
             'Dotenv\\' => 7,
+            'Doctrine\\Inflector\\' => 19,
             'Doctrine\\Common\\Lexer\\' => 22,
             'Doctrine\\Common\\Inflector\\' => 26,
         ),
@@ -201,6 +208,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         array (
             0 => __DIR__ . '/..' . '/typo3/class-alias-loader/src',
         ),
+        'Symfony\\Polyfill\\Php81\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php81',
+        ),
         'Symfony\\Polyfill\\Php80\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
@@ -212,10 +223,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'Symfony\\Polyfill\\Php72\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php72',
-        ),
-        'Symfony\\Polyfill\\Php70\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php70',
         ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (
@@ -317,6 +324,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         array (
             0 => __DIR__ . '/..' . '/symfony/config',
         ),
+        'Stevenmaguire\\OAuth2\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/stevenmaguire/oauth2-microsoft/src',
+        ),
         'Ramsey\\Uuid\\' => 
         array (
             0 => __DIR__ . '/..' . '/ramsey/uuid/src',
@@ -353,6 +364,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'PhpImap\\' => 
         array (
             0 => __DIR__ . '/..' . '/php-imap/php-imap/src/PhpImap',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'PDepend\\' => 
         array (
@@ -440,6 +455,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         array (
             0 => __DIR__ . '/..' . '/fzaninotto/faker/src/Faker',
         ),
+        'Eusebiu\\JavaScript\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cretueusebiu/laravel-javascript/src',
+        ),
         'Egulias\\EmailValidator\\' => 
         array (
             0 => __DIR__ . '/..' . '/egulias/email-validator/src',
@@ -447,6 +466,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+        'Doctrine\\Inflector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
         ),
         'Doctrine\\Common\\Lexer\\' => 
         array (
@@ -540,6 +563,29 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
     );
 
     public static $classMap = array (
+        'AWS\\CRT\\Auth\\AwsCredentials' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/AwsCredentials.php',
+        'AWS\\CRT\\Auth\\CredentialsProvider' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/CredentialsProvider.php',
+        'AWS\\CRT\\Auth\\Signable' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/Signable.php',
+        'AWS\\CRT\\Auth\\SignatureType' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/SignatureType.php',
+        'AWS\\CRT\\Auth\\SignedBodyHeaderType' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/SignedBodyHeaderType.php',
+        'AWS\\CRT\\Auth\\Signing' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/Signing.php',
+        'AWS\\CRT\\Auth\\SigningAlgorithm' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/SigningAlgorithm.php',
+        'AWS\\CRT\\Auth\\SigningConfigAWS' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/SigningConfigAWS.php',
+        'AWS\\CRT\\Auth\\SigningResult' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/SigningResult.php',
+        'AWS\\CRT\\Auth\\StaticCredentialsProvider' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Auth/StaticCredentialsProvider.php',
+        'AWS\\CRT\\CRT' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/CRT.php',
+        'AWS\\CRT\\HTTP\\Headers' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/HTTP/Headers.php',
+        'AWS\\CRT\\HTTP\\Message' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/HTTP/Message.php',
+        'AWS\\CRT\\HTTP\\Request' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/HTTP/Request.php',
+        'AWS\\CRT\\HTTP\\Response' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/HTTP/Response.php',
+        'AWS\\CRT\\IO\\EventLoopGroup' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/IO/EventLoopGroup.php',
+        'AWS\\CRT\\IO\\InputStream' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/IO/InputStream.php',
+        'AWS\\CRT\\Internal\\Encoding' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Internal/Encoding.php',
+        'AWS\\CRT\\Internal\\Extension' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Internal/Extension.php',
+        'AWS\\CRT\\Log' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Log.php',
+        'AWS\\CRT\\NativeResource' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/NativeResource.php',
+        'AWS\\CRT\\OptionValue' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Options.php',
+        'AWS\\CRT\\Options' => __DIR__ . '/..' . '/aws/aws-crt-php/src/AWS/CRT/Options.php',
         'AbeConfiguration' => __DIR__ . '/../..' . '/workflow/engine/classes/model/AbeConfiguration.php',
         'AbeConfigurationMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/AbeConfigurationMapBuilder.php',
         'AbeConfigurationPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/AbeConfigurationPeer.php',
@@ -635,10 +681,9 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'Applications' => __DIR__ . '/../..' . '/workflow/engine/classes/Applications.php',
         'Archive' => __DIR__ . '/../..' . '/workflow/engine/classes/Archive.php',
         'Archive_Zip' => __DIR__ . '/../..' . '/thirdparty/phing/lib/Zip.php',
-        'ArithmeticError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/ArithmeticError.php',
         'ArrayBasePeer' => __DIR__ . '/../..' . '/workflow/engine/classes/ArrayBasePeer.php',
-        'AssertionError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/AssertionError.php',
         'AssignedVar' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/ext/CapsuleTask.php',
+        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'AuthenticationSource' => __DIR__ . '/../..' . '/rbac/engine/classes/model/AuthenticationSource.php',
         'AuthenticationSourceMapBuilder' => __DIR__ . '/../..' . '/rbac/engine/classes/model/map/AuthenticationSourceMapBuilder.php',
         'AuthenticationSourcePeer' => __DIR__ . '/../..' . '/rbac/engine/classes/model/AuthenticationSourcePeer.php',
@@ -736,6 +781,8 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'BaseCalendarHolidaysPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCalendarHolidaysPeer.php',
         'BaseCaseConsolidatedCore' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseConsolidatedCore.php',
         'BaseCaseConsolidatedCorePeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseConsolidatedCorePeer.php',
+        'BaseCaseList' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseList.php',
+        'BaseCaseListPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseListPeer.php',
         'BaseCaseScheduler' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseScheduler.php',
         'BaseCaseSchedulerPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseSchedulerPeer.php',
         'BaseCaseTracker' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseCaseTracker.php',
@@ -923,6 +970,10 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'BaseTranslationPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseTranslationPeer.php',
         'BaseTriggers' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseTriggers.php',
         'BaseTriggersPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseTriggersPeer.php',
+        'BaseUserConfig' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUserConfig.php',
+        'BaseUserConfigPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUserConfigPeer.php',
+        'BaseUserExtendedAttributes' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUserExtendedAttributes.php',
+        'BaseUserExtendedAttributesPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUserExtendedAttributesPeer.php',
         'BaseUsers' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUsers.php',
         'BaseUsersPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUsersPeer.php',
         'BaseUsersProperties' => __DIR__ . '/../..' . '/workflow/engine/classes/model/om/BaseUsersProperties.php',
@@ -1171,6 +1222,9 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'CaseConsolidatedCore' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseConsolidatedCore.php',
         'CaseConsolidatedCoreMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/CaseConsolidatedCoreMapBuilder.php',
         'CaseConsolidatedCorePeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseConsolidatedCorePeer.php',
+        'CaseList' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseList.php',
+        'CaseListMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/CaseListMapBuilder.php',
+        'CaseListPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseListPeer.php',
         'CaseScheduler' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseScheduler.php',
         'CaseSchedulerMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/CaseSchedulerMapBuilder.php',
         'CaseSchedulerPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/CaseSchedulerPeer.php',
@@ -1357,7 +1411,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'DirSet' => __DIR__ . '/../..' . '/thirdparty/phing/types/DirSet.php',
         'DirectoryScanner' => __DIR__ . '/../..' . '/thirdparty/phing/util/DirectoryScanner.php',
         'Dispatcher' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/dispatcher.class.php',
-        'DivisionByZeroError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/DivisionByZeroError.php',
         'DocHTML' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/classes/org/active-link/doc/DocHTML.php',
         'DynaFormField' => __DIR__ . '/../..' . '/workflow/engine/classes/DynaFormField.php',
         'Dynaform' => __DIR__ . '/../..' . '/workflow/engine/classes/model/Dynaform.php',
@@ -1366,7 +1419,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'DynaformHandler' => __DIR__ . '/../..' . '/gulliver/system/class.dynaformhandler.php',
         'DynaformMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/DynaformMapBuilder.php',
         'DynaformPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/DynaformPeer.php',
-        'EasyPeasyICS' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/EasyPeasyICS.php',
         'EchoTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/EchoTask.php',
         'EdgePDF' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/value.border.edge.class.php',
         'ElementTaskRelation' => __DIR__ . '/../..' . '/workflow/engine/classes/model/ElementTaskRelation.php',
@@ -1395,7 +1447,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'EntitySolrRequestData' => __DIR__ . '/../..' . '/workflow/engine/classes/entities/EntitySolrRequestData.php',
         'EntitySolrUpdateDocument' => __DIR__ . '/../..' . '/workflow/engine/classes/entities/EntitySolrUpdateDocument.php',
         'EqualsCondition' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/condition/EqualsCondition.php',
-        'Error' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/Error.php',
         'Event' => __DIR__ . '/../..' . '/workflow/engine/classes/model/Event.php',
         'EventMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/EventMapBuilder.php',
         'EventObject' => __DIR__ . '/../..' . '/thirdparty/phing/system/lang/EventObject.php',
@@ -5460,9 +5511,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'PEAR_Remote' => __DIR__ . '/../..' . '/thirdparty/pear/PEAR/Remote.php',
         'PHPClass' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/classes/org/active-link/doc/PHPClass.php',
         'PHPDocumentorTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/ext/phpdoc/PHPDocumentorTask.php',
-        'PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
-        'PHPMailerOAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauth.php',
-        'PHPMailerOAuthGoogle' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauthgoogle.php',
         'PHPSQLParser' => __DIR__ . '/../..' . '/gulliver/system/class.phpSqlParser.php',
         'PHPUnit2ReportTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/ext/phpunit2/PHPUnit2ReportTask.php',
         'PHPUnit2ResultFormatter' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/ext/phpunit2/PHPUnit2ResultFormatter.php',
@@ -5477,7 +5525,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'PMServiceNTLMSoapClient' => __DIR__ . '/../..' . '/gulliver/system/class.soapNtlm.php',
         'PMServiceProviderNTLMStream' => __DIR__ . '/../..' . '/gulliver/system/class.soapNtlm.php',
         'PMmemcached' => __DIR__ . '/../..' . '/workflow/engine/classes/PMmemcached.php',
-        'POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.pop3.php',
         'PSImageEncoder' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/ps.image.encoder.stream.inc.php',
         'PSImageEncoderSimple' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/ps.image.encoder.simple.inc.php',
         'PSImageEncoderStream' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/ps.image.encoder.stream.inc.php',
@@ -5491,7 +5538,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'PageBreakLocator' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/layout.page.breaks.php',
         'Parameter' => __DIR__ . '/../..' . '/thirdparty/phing/types/Parameter.php',
         'Parameterizable' => __DIR__ . '/../..' . '/thirdparty/phing/types/Parameterizable.php',
-        'ParseError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/ParseError.php',
         'Parser' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/parser._interface.class.php',
         'ParserXHTML' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/parser.xhtml.class.php',
         'PasswordInputBox' => __DIR__ . '/../..' . '/thirdparty/html2ps_pdf/box.input.password.php',
@@ -5641,6 +5687,7 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'ResultSet' => __DIR__ . '/../..' . '/thirdparty/creole/ResultSet.php',
         'ResultSetCommon' => __DIR__ . '/../..' . '/thirdparty/creole/common/ResultSetCommon.php',
         'ResultSetIterator' => __DIR__ . '/../..' . '/thirdparty/creole/ResultSetIterator.php',
+        'ReturnTypeWillChange' => __DIR__ . '/..' . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
         'Roles' => __DIR__ . '/../..' . '/rbac/engine/classes/model/Roles.php',
         'RolesMapBuilder' => __DIR__ . '/../..' . '/rbac/engine/classes/model/map/RolesMapBuilder.php',
         'RolesPeer' => __DIR__ . '/../..' . '/rbac/engine/classes/model/RolesPeer.php',
@@ -5652,7 +5699,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'RouteMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/RouteMapBuilder.php',
         'RoutePeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/RoutePeer.php',
         'RuntimeConfigurable' => __DIR__ . '/../..' . '/thirdparty/phing/RuntimeConfigurable.php',
-        'SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.smtp.php',
         'SOAPArrayStruct' => __DIR__ . '/../..' . '/thirdparty/pear/SOAP/Interop/params_classes.php',
         'SOAPStruct' => __DIR__ . '/../..' . '/thirdparty/pear/SOAP/Interop/params_classes.php',
         'SOAPStructStruct' => __DIR__ . '/../..' . '/thirdparty/pear/SOAP/Interop/params_classes.php',
@@ -5731,7 +5777,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'SessionStorage' => __DIR__ . '/../..' . '/workflow/engine/classes/model/SessionStorage.php',
         'SessionStorageMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/SessionStorageMapBuilder.php',
         'SessionStoragePeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/SessionStoragePeer.php',
-        'SessionUpdateTimestampHandlerInterface' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/SessionUpdateTimestampHandlerInterface.php',
         'Sessions' => __DIR__ . '/../..' . '/workflow/engine/classes/Sessions.php',
         'ShadowTable' => __DIR__ . '/../..' . '/workflow/engine/classes/model/ShadowTable.php',
         'ShadowTableMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/ShadowTableMapBuilder.php',
@@ -5872,7 +5917,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'TriggersPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/TriggersPeer.php',
         'TstampCustomFormat' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/TstampTask.php',
         'TstampTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/TstampTask.php',
-        'TypeError' => __DIR__ . '/..' . '/symfony/polyfill-php70/Resources/stubs/TypeError.php',
         'TypeSelector' => __DIR__ . '/../..' . '/thirdparty/phing/types/selectors/TypeSelector.php',
         'TypedefTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/TypedefTask.php',
         'UDDI' => __DIR__ . '/../..' . '/thirdparty/pear/UDDI.php',
@@ -5885,6 +5929,12 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'UpToDateTask' => __DIR__ . '/../..' . '/thirdparty/phing/tasks/system/UpToDateTask.php',
         'UpgradeManagerMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/UpgradeManagerMapBuilder.php',
         'UpgradeStoreMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/UpgradeStoreMapBuilder.php',
+        'UserConfig' => __DIR__ . '/../..' . '/workflow/engine/classes/model/UserConfig.php',
+        'UserConfigMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/UserConfigMapBuilder.php',
+        'UserConfigPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/UserConfigPeer.php',
+        'UserExtendedAttributes' => __DIR__ . '/../..' . '/workflow/engine/classes/model/UserExtendedAttributes.php',
+        'UserExtendedAttributesMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/UserExtendedAttributesMapBuilder.php',
+        'UserExtendedAttributesPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/UserExtendedAttributesPeer.php',
         'Users' => __DIR__ . '/../..' . '/workflow/engine/classes/model/Users.php',
         'UsersMapBuilder' => __DIR__ . '/../..' . '/workflow/engine/classes/model/map/UsersMapBuilder.php',
         'UsersPeer' => __DIR__ . '/../..' . '/workflow/engine/classes/model/UsersPeer.php',
@@ -6054,7 +6104,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'mailer' => __DIR__ . '/../..' . '/gulliver/system/class.mailer.php',
         'menuDetail' => __DIR__ . '/../..' . '/workflow/engine/classes/class.plugin.php',
         'newSiteProxy' => __DIR__ . '/../..' . '/workflow/engine/controllers/newSiteProxy.php',
-        'ntlm_sasl_client_class' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/ntlm_sasl_client.php',
         'nusoap_base' => __DIR__ . '/../..' . '/thirdparty/pear/nusoap.php',
         'nusoap_base_colosa' => __DIR__ . '/../..' . '/thirdparty/pear/nusoap.colosa.php',
         'nusoapservermime' => __DIR__ . '/../..' . '/thirdparty/pear/nusoapmime.php',
@@ -6076,7 +6125,6 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
         'pakeTask' => __DIR__ . '/../..' . '/thirdparty/pake/pakeTask.class.php',
         'pakeYAMLNode' => __DIR__ . '/../..' . '/thirdparty/pake/pakeYaml.class.php',
         'pakeYaml' => __DIR__ . '/../..' . '/thirdparty/pake/pakeYaml.class.php',
-        'phpmailerException' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
         'pmTables' => __DIR__ . '/../..' . '/workflow/engine/controllers/pmTables.php',
         'pmTablesProxy' => __DIR__ . '/../..' . '/workflow/engine/controllers/pmTablesProxy.php',
         'processOptionsProxy' => __DIR__ . '/../..' . '/workflow/engine/controllers/processOptionsProxy.php',
@@ -6112,12 +6160,12 @@ class ComposerStaticInit8879d522a352fc595fc110478e81e96d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$prefixDirsPsr4;
-            $loader->fallbackDirsPsr4 = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$fallbackDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$prefixesPsr0;
-            $loader->fallbackDirsPsr0 = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$fallbackDirsPsr0;
-            $loader->classMap = ComposerStaticInit8879d522a352fc595fc110478e81e96d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$prefixDirsPsr4;
+            $loader->fallbackDirsPsr4 = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$fallbackDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$prefixesPsr0;
+            $loader->fallbackDirsPsr0 = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$fallbackDirsPsr0;
+            $loader->classMap = ComposerStaticInit3a57e945ac2d3fe576ad7bd34835e5e2::$classMap;
 
         }, null, ClassLoader::class);
     }

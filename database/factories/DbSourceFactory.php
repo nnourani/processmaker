@@ -22,7 +22,7 @@ $factory->define(\ProcessMaker\Model\DbSource::class, function(Faker $faker) {
         /**
          * @todo WHY figure out there's a magic value to the encryption here
          */
-        'DBS_PASSWORD' => \G::encrypt( $faker->password, $dbName) . "_2NnV3ujj3w",
+        'DBS_PASSWORD' => \G::encrypt( $faker->password, $dbName, false, false) . "_2NnV3ujj3w",
         'DBS_PORT' => $faker->numberBetween(1000, 9000),
         'DBS_ENCODE' => 'utf8', // @todo Perhaps grab this from our definitions in DbConnections
         'DBS_CONNECTION_TYPE' => 'NORMAL', // @todo Determine what this value means

@@ -5,6 +5,7 @@ use Faker\Generator as Faker;
 $factory->define(\ProcessMaker\Model\AppNotes::class, function (Faker $faker) {
     return [
         'APP_UID' => G::generateUniqueID(),
+        'APP_NUMBER' => $faker->unique()->numberBetween(5000),
         'USR_UID' => G::generateUniqueID(),
         'NOTE_DATE' => $faker->dateTime(),
         'NOTE_CONTENT' => $faker->sentence(3),
@@ -26,6 +27,7 @@ $factory->state(\ProcessMaker\Model\AppNotes::class, 'foreign_keys', function (F
     // Return with default values
     return [
         'APP_UID' => $application->APP_UID,
+        'APP_NUMBER' => $application->APP_NUMBER,
         'USR_UID' => $user->USR_UID,
         'NOTE_DATE' => $faker->dateTime(),
         'NOTE_CONTENT' => $faker->sentence(3),

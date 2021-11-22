@@ -1,5 +1,14 @@
 # Change Log
 
+## [5.4.2] - 2021-02-05
+
+* Added check for quoted symbol to avoid parser error in case of keyword (#317)
+* Allow PHP 8
+
+## [5.4.1] - 2020-10-15
+
+* Fix array_key_exists warning when parsing a "DEFAULT FALSE" token (#299)
+
 ## [5.4.0] - 2020-10-08
 
 * EXISTS is also a function. (#297)
@@ -53,6 +62,24 @@
 * Fix for PHP warnings with an incomplete CASE expression (#241)
 * Fix for error message with multiple CALL statements (#223)
 * Recognize the question mark character as a parameter (#242)
+
+## [4.7.2] - 2021-02-05
+
+- Added check for quoted symbol to avoid parser error in case of keyword (#317)
+- Adjust PHP version constraint to not support PHP 8.0 on the 4.7 series (5.x series supports it)
+
+## [4.7.1] - 2020-10-15
+
+* Fix array_key_exists warning when parsing a "DEFAULT FALSE" token (#299)
+
+## [4.7.0] - 2020-10-08
+
+* EXISTS is also a function. (#297)
+* Fix lexer to not allow numbers with letters (#300)
+* Add support for INVISIBLE keyword (#292)
+* Fix the "$" might be a character used in a name (#301)
+* Fix use stream_select instead of non-blocking STDIN (#309)
+* Add select validation to a create view statement (#310)
 
 ## [4.6.1] - 2020-03-20
 

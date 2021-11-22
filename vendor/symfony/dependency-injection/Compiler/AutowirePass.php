@@ -126,7 +126,7 @@ class AutowirePass extends AbstractRecursivePass
         $this->methodCalls = $this->autowireCalls($reflectionClass, $isRoot);
 
         if ($constructor) {
-            list(, $arguments) = array_shift($this->methodCalls);
+            [, $arguments] = array_shift($this->methodCalls);
 
             if ($arguments !== $value->getArguments()) {
                 $value->setArguments($arguments);
@@ -146,13 +146,13 @@ class AutowirePass extends AbstractRecursivePass
         $this->decoratedClass = null;
         $this->getPreviousValue = null;
 
-        if ($isRoot && ($definition = $this->container->getDefinition($this->currentId)) && $this->container->has($this->decoratedId = $definition->innerServiceId)) {
+        if ($isRoot && ($definition = $this->container->getDefinition($this->currentId)) && null !== ($this->decoratedId = $definition->innerServiceId) && $this->container->has($this->decoratedId)) {
             $this->decoratedClass = $this->container->findDefinition($this->decoratedId)->getClass();
         }
 
         foreach ($this->methodCalls as $i => $call) {
             $this->decoratedMethodIndex = $i;
-            list($method, $arguments) = $call;
+            [$method, $arguments] = $call;
 
             if ($method instanceof \ReflectionFunctionAbstract) {
                 $reflectionMethod = $method;
@@ -297,7 +297,7 @@ class AutowirePass extends AbstractRecursivePass
 
             if ($this->container->has($name) && !$this->container->findDefinition($name)->isAbstract()) {
                 foreach ($this->container->getAliases() as $id => $alias) {
-                    if ($name === (string) $alias && 0 === strpos($id, $type.' $')) {
+                    if ($name === (string) $alias && str_starts_with($id, $type.' $')) {
                         return new TypedReference($name, $type, $reference->getInvalidBehavior());
                     }
                 }
@@ -374,7 +374,7 @@ class AutowirePass extends AbstractRecursivePass
         $this->ambiguousServiceTypes[$type][] = $id;
     }
 
-    private function createTypeNotFoundMessageCallback(TypedReference $reference, string $label): callable
+    private function createTypeNotFoundMessageCallback(TypedReference $reference, string $label): \Closure
     {
         if (null === $this->typesClone->container) {
             $this->typesClone->container = new ContainerBuilder($this->container->getParameterBag());

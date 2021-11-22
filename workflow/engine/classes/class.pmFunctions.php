@@ -1,39 +1,17 @@
 <?php
-/**
- * class.pmFunctions.php
- *
- * ProcessMaker Open Source Edition
- * Copyright (C) 2004 - 2008 Colosa Inc.23
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * For more information, contact Colosa Inc, 2566 Le Jeune Rd.,
- * Coral Gables, FL, 33134, USA, or email info@colosa.com.
- */
-////////////////////////////////////////////////////
-// PM Functions
-//
-// Copyright (C) 2007 COLOSA
-//
-// License: LGPL, see LICENSE
-////////////////////////////////////////////////////
+
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use ProcessMaker\BusinessModel\Cases as BusinessModelCases;
 use ProcessMaker\Core\System;
+use ProcessMaker\Model\GroupUser;
+use ProcessMaker\Model\Groupwf;
+use ProcessMaker\Model\RbacRoles;
+use ProcessMaker\Model\RbacUsers;
+use ProcessMaker\Model\User;
 use ProcessMaker\Plugins\PluginRegistry;
 use ProcessMaker\Util\ElementTranslation;
-use Illuminate\Support\Facades\DB;
+use ProcessMaker\Validation\SqlBlacklist;
 
 /**
  * ProcessMaker has made a number of its PHP functions available be used in triggers and conditions.
@@ -241,101 +219,60 @@ function literalDate ($date, $lang = 'en')
  * @throws SQLException
  *
  */
-function executeQuery ($SqlStatement, $DBConnectionUID = 'workflow', $aParameter = array())
+function executeQuery($sqlStatement, $dbConnectionUID = 'workflow', $parameters = [])
 {
     // This means the DBConnectionUID is not loaded yet, so we'll force DbConnections::loadAdditionalConnections
-    if (is_null(config('database.connections.' . $DBConnectionUID . '.driver'))) {
+    if (is_null(config('database.connections.' . $dbConnectionUID . '.driver'))) {
         // Force to load the external connections
         DbConnections::loadAdditionalConnections();
     }
 
-    if (config('database.connections.' . $DBConnectionUID . '.driver') !== 'oracle') {
+    if (config('database.connections.' . $dbConnectionUID . '.driver') !== 'oracle') {
         // If the connections drivers are "mysql", "pgsql" or "sqlsrv" we're using Laravel
-        $con = DB::connection($DBConnectionUID);
+        $con = DB::connection($dbConnectionUID);
         $con->beginTransaction();
     } else {
         // If the connection driver is "oracle" we are using the native oci8 functions
-        $con = Propel::getConnection($DBConnectionUID);
+        $con = Propel::getConnection($dbConnectionUID);
         $con->begin();
     }
-
-    $blackList = System::getQueryBlackList();
-    $listQueries = explode('|', isset($blackList['queries']) ? $blackList['queries'] : '');
-    $aListAllTables = explode(
-        '|',
-        ((isset($blackList['tables']))? $blackList['tables'] : '') .
-        ((isset($blackList['pmtables']))? $blackList['pmtables'] : '')
-    );
-    $parseSqlStm = new PHPSQLParser($SqlStatement);
+    
     try {
-        //Parsing queries and check the blacklist
-        foreach ($parseSqlStm as $key => $value) {
-            if($key === 'parsed'){
-                $aParseSqlStm = $value;
-                continue;
-            }
-        }
-        $nameOfTable = '';
-        $arrayOfTables = array();
-        foreach ($aParseSqlStm as $key => $value) {
-            if(in_array($key, $listQueries)){
-                if(isset($value['table'])){
-                    $nameOfTable = $value['table'];
-                } else {
-                    foreach ($value as $valueTab) {
-                        if(is_array($valueTab)){
-                            $arrayOfTables = $valueTab;
-                        } else {
-                            $nameOfTable = $valueTab;
-                        }
-                    }
-                }
-                if(isset($nameOfTable) && $nameOfTable !== ''){
-                    if(in_array($nameOfTable,$aListAllTables)){
-                        G::SendTemporalMessage( G::loadTranslation('ID_NOT_EXECUTE_QUERY', array($nameOfTable)), 'error', 'labels' );
-                        throw new SQLException(G::loadTranslation('ID_NOT_EXECUTE_QUERY', array($nameOfTable)));
-                    }
-                }
-                if (is_array($arrayOfTables)){
-                    foreach ($arrayOfTables as $row){
-                        if(!empty($row)){
-                            if(in_array($row, $aListAllTables)){
-                                G::SendTemporalMessage(G::loadTranslation('ID_NOT_EXECUTE_QUERY', array($nameOfTable)), 'error', 'labels' );
-                                throw new SQLException(G::loadTranslation('ID_NOT_EXECUTE_QUERY', array($nameOfTable)));
-                            }
-                        }
-                    }
-                }
-            }
+        try {
+            (new SqlBlacklist($sqlStatement))->validate();
+        } catch (Exception $e) {
+            G::SendTemporalMessage($e->getMessage(), 'error', 'labels');
+            throw new SQLException($e->getMessage());
         }
 
-        $statement = trim( $SqlStatement );
-        $statement = str_replace( '(', '', $statement );
+        $statement = trim($sqlStatement);
+        $statement = str_replace('(', '', $statement);
 
         $result = false;
-
         // Check to see if we're not running oracle, which is usually a safe default
-        if (config('database.connections.' . $DBConnectionUID . '.driver') != 'oracle') {
+        if (config('database.connections.' . $dbConnectionUID . '.driver') != 'oracle') {
             try {
                 switch (true) {
-                    case preg_match( "/^(SELECT|EXECUTE|EXEC|SHOW|DESCRIBE|EXPLAIN|BEGIN)\s/i", $statement ):
-                        $result = $con->select( $SqlStatement );
+                    case preg_match("/^(SELECT|EXECUTE|EXEC|SHOW|DESCRIBE|EXPLAIN|BEGIN)\s/i", $statement):
+                        $result = $con->select($sqlStatement);
                         // Convert to 1 index key array of array results
-                        $result = collect($result)->map(function($x) { return (array)$x; })->toArray();
+                        $result = collect($result)->map(function ($x) {
+                                return (array) $x;
+                            })->toArray();
                         array_unshift($result, []);
                         unset($result[0]);
                         break;
-                    case preg_match( "/^INSERT\s/i", $statement ):
-                        $result = $con->insert( $SqlStatement );
+                    case preg_match("/^INSERT\s/i", $statement):
+                        $result = $con->insert($sqlStatement);
                         break;
-                    case preg_match( "/^REPLACE\s/i", $statement ):
-                        $result = $con->update( $SqlStatement );
+                    case preg_match("/^REPLACE\s/i", $statement):
+                        $result = $con->update($sqlStatement);
                         break;
-                    case preg_match( "/^UPDATE\s/i", $statement ):
-                        $result = $con->update( $SqlStatement );
+                    case preg_match("/^UPDATE\s/i", $statement):
+                        $result = $con->update($sqlStatement);
                         break;
-                    case preg_match( "/^DELETE\s/i", $statement ):
-                        $result = $con->delete( $SqlStatement );
+                    case preg_match("/^DELETE\s/i", $statement):
+                        $result = $con->delete($sqlStatement);
                         break;
                 }
                 $con->commit();
@@ -347,21 +284,19 @@ function executeQuery ($SqlStatement, $DBConnectionUID = 'workflow', $aParameter
             $dataEncode = $con->getDSN();
 
             if (isset($dataEncode["encoding"]) && $dataEncode["encoding"] != "") {
-                $result = executeQueryOci($SqlStatement, $con, $aParameter, $dataEncode["encoding"]);
+                $result = executeQueryOci($sqlStatement, $con, $parameters, $dataEncode["encoding"]);
             } else {
-                $result = executeQueryOci($SqlStatement, $con, $aParameter);
+                $result = executeQueryOci($sqlStatement, $con, $parameters);
             }
         }
-        //Logger
         $message = 'Sql Execution';
         $context = [
             'action' => 'execute-query',
-            'sql' => $SqlStatement
+            'sql' => $sqlStatement
         ];
         Log::channel(':sqlExecution')->info($message, Bootstrap::context($context));
         return $result;
     } catch (SQLException $sqle) {
-        //Logger
         $message = 'Sql Execution';
         $context = [
             'action' => 'execute-query',
@@ -4081,6 +4016,202 @@ function PMFSendMessageToGroup(
 
     //Return
     return 1;
+}
+
+/**
+ * @method
+ * 
+ * Create a new user
+ * 
+ * @name PMFNewUser
+ * @label PMF New User
+ * 
+ * @param string | $username
+ * @param string | $password
+ * @param string | $firstname
+ * @param string | $lastname
+ * @param string | $email
+ * @param string | $role
+ * @param string | $dueDate = null
+ * @param string | $status = null
+ * @param string | $group =null
+ * 
+ * @return array | $response | Response
+ */
+function PMFNewUser(
+    $username,
+    $password, 
+    $firstname, 
+    $lastname, 
+    $email,
+    $role,
+    $dueDate = null,
+    $status = null,
+    $group = null)
+{
+    if (empty($username)) {
+        throw new Exception(G::LoadTranslation('ID_USERNAME_REQUIRED'));
+    }
+
+    if (empty($firstname)) {
+        throw new Exception(G::LoadTranslation('ID_MSG_ERROR_USR_FIRSTNAME'));
+    }
+
+    if (empty($lastname)) {
+        throw new Exception(G::LoadTranslation('ID_MSG_ERROR_USR_LASTNAME'));
+    }
+
+    if (empty($password)) {
+        throw new Exception(G::LoadTranslation('ID_PASSWD_REQUIRED'));
+    }
+
+    if (empty($email)) {
+        throw new Exception(G::LoadTranslation('ID_EMAIL_IS_REQUIRED'));
+    }
+
+    if (!empty($dueDate) && $dueDate != 'null' && $dueDate != '' && $dueDate) {
+        if (!preg_match("/^(\d{4})-(\d{2})-(\d{2})$/", $dueDate, $match)) {
+            throw new Exception(G::LoadTranslation('ID_INVALID_DATA'));
+        } else {
+            $dueDate = mktime(
+                0,
+                0,
+                0,
+                intval($match[2]),
+                intval($match[3]),
+                intval($match[1])
+            );
+        }
+    } else {
+        $expirationDate = 1;
+        $envFile = PATH_CONFIG . 'env.ini';
+        if (file_exists($envFile)) {
+            $sysConf = System::getSystemConfiguration($envFile);
+            if (isset($sysConf['expiration_year']) && $sysConf['expiration_year'] > 0) {
+                $expirationDate = abs($sysConf['expiration_year']);
+            }
+        }
+        $dueDate = mktime(0, 0, 0, 12, 31, date("Y") + $expirationDate);
+    }
+    
+    if (!empty($status) && $status != null && $status != "" && $status) {
+        if ($status != "ACTIVE" && $status != "INACTIVE" && $status != "VACATION") {
+            throw new Exception(G::LoadTranslation('ID_INVALID_DATA'));
+        }
+    } else {
+        $status = "ACTIVE";
+    }
+
+    $rolUid = RbacRoles::getRolUidByCode($role);
+    if (empty($rolUid)) {
+        throw new Exception(G::LoadTranslation('ID_INVALID_ROLE'));
+    }
+
+    $userProperties = new UsersProperties();
+    $validation = $userProperties->validatePassword($password, '', 0);
+
+    if (in_array('ID_PPP_MAXIMUM_LENGTH', $validation)) {
+        throw new Exception(G::LoadTranslation('ID_PASSWORD_SURPRASES'));
+    }
+    
+    if (in_array('ID_PPP_MINIMUM_LENGTH', $validation)) {
+        throw new Exception(G::LoadTranslation('ID_PASSWORD_BELOW'));
+    }
+
+    if (in_array('ID_PPP_NUMERICAL_CHARACTER_REQUIRED', $validation)) {
+        throw new Exception(G::LoadTranslation('ID_PPP_NUMERICAL_CHARACTER_REQUIRED'));
+    }
+
+    if (in_array('ID_PPP_UPPERCASE_CHARACTER_REQUIRED', $validation)) {
+        throw new Exception(G::LoadTranslation('ID_PPP_UPPERCASE_CHARACTER_REQUIRED'));
+    }
+
+    if (in_array('ID_PPP_SPECIAL_CHARACTER_REQUIRED', $validation)) {
+        throw new Exception(G::LoadTranslation('ID_PPP_SPECIAL_CHARACTER_REQUIRED'));
+    }
+
+    if (RbacUsers::verifyUsernameExists($username)) {
+        throw new Exception(G::LoadTranslation('ID_USERNAME_ALREADY_EXISTS'));
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception(G::LoadTranslation('ID_EMAIL_INVALID'));
+    }
+
+    if (!is_null($group) && $group != '' && !Groupwf::verifyGroupExists($group)) {
+        throw new Exception(G::LoadTranslation('ID_GROUP_DOESNT_EXIST'));
+    }
+
+    switch ($status) {
+        case 'ACTIVE':
+            $statusId = 1;
+            break;
+        case 'INACTIVE':
+            $statusId = 0;
+            break;
+        case 'VACATION':
+            $statusId = 0;
+            break;
+    }
+    $usrUid = G::generateUniqueID();
+
+    $data = [
+        'USR_UID' => $usrUid,
+        'USR_USERNAME' => $username,
+        'USR_PASSWORD' => Bootstrap::hashPassword($password),
+        'USR_FIRSTNAME' => $firstname,
+        'USR_LASTNAME' => $lastname,
+        'USR_EMAIL' => $email,
+        'USR_DUE_DATE' => date('Y-m-d', $dueDate),
+        'USR_CREATE_DATE' => date("Y-m-d H:i:s"),
+        'USR_UPDATE_DATE' => date("Y-m-d H:i:s"),
+        'USR_STATUS' => $status,
+        'USR_AUTH_TYPE' => '',
+        'UID_AUTH_SOURCE' => '',
+        'USR_AUTH_USER_DN' => "",
+        'USR_AUTH_SUPERVISOR_DN' => "",
+        'USR_STATUS_ID' => $statusId,
+        'USR_COUNTRY' => '',
+        'USR_CITY' => '',
+        'USR_LOCATION' => '',
+        'USR_ADDRESS' => '',
+        'USR_PHONE' => '',
+        'USR_FAX' => '',
+        'USR_CELLULAR' => '',
+        'USR_ZIP_CODE' => '',
+        'DEP_UID' => '',
+        'USR_POSITION' => '',
+        'USR_RESUME' => '',
+        'ROL_CODE' => $role,
+        'ROL_UID' => $rolUid['ROL_UID']
+    ];
+
+    RbacUsers::createUser($data);
+    $usrId = User::createUser($data);
+    
+    $data['USR_ID'] = $usrId;
+
+    if (!is_null($group) && $group != '') {
+        $grpId = Groupwf::getGroupId($group);
+        $data['GRP_ID'] = $grpId['GRP_ID'];
+        GroupUser::assignUserToGroup($usrUid, $usrUid, $group, $grpId['GRP_ID']);
+    }
+
+    $response = [
+        'userUid' => $data['USR_UID'],
+        'userId' => $data['USR_ID'],
+        'username' => $data['USR_USERNAME'],
+        'password' => $data['USR_PASSWORD'],
+        'firstname' => $data['USR_FIRSTNAME'],
+        'lastname' => $data['USR_LASTNAME'],
+        'email' => $data['USR_EMAIL'],
+        'role' => $data['ROL_CODE'],
+        'dueDate' => $data['USR_DUE_DATE'],
+        'status' => $data['USR_STATUS'],
+        'groupUid' => $group
+    ];
+    
+    return $response;
 }
 
 //Start - Private functions

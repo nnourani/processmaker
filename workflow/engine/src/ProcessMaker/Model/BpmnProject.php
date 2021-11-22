@@ -13,4 +13,20 @@ class BpmnProject extends Model
     // We do not have create/update timestamps for this table
     public $timestamps = false;
 
+    /**
+     * Check is the Process is BPMN.
+     *
+     * @param string $proUid
+     *
+     * @return int 1 if is BPMN process or 0 if a Normal process
+     */
+    public static function isBpmnProcess(string $proUid)
+    {
+        $query = BpmnProject::query()
+            ->select()
+            ->where('PRJ_UID', '=', $proUid);
+        $result = $query->get()->values()->toArray();
+
+        return empty($result) ? 0 : 1;
+    }
 }

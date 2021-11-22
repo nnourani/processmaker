@@ -4257,6 +4257,39 @@ xCase.extendNamespace = function (path, newClass) {
         });
         return resp;
     };
+    /**
+     * Recovery the images in async mode - light/case/{caseUID}/download64
+     * @param {*} data 
+     * @param {*} fn 
+     */
+    WebServiceManager.prototype.getImages = function (data, fn) {
+        var that = this,
+            method,
+            url,
+            resp = [];
+        url = that.getFullEndPoint(that.options.keys, that.options.urlBase, that.options.endPoints.imageInfo);
+        method = "POST";
+        $.ajax({
+            url: url,
+            type: method,
+            async: true,
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", "Bearer " + that.options.token.accessToken);
+                if (that.options.language !== null) {
+                    xhr.setRequestHeader("Accept-Language", that.options.language);
+                }
+            },
+            success: function (data, textStatus) {
+                resp = data;
+                if (_.isFunction(fn)) {
+                    fn(resp);
+                }
+            }
+        });
+        return null;
+    };
 
     WebServiceManager.prototype.restClient = function () {
         defaults = {
@@ -6150,6 +6183,8 @@ xCase.extendNamespace = function (path, newClass) {
         this.matrix = {};
         this.dependencies = {};
         this.fields;
+        this.deferredStack = [];
+        this.deferedModels = [];
 
         /**
          * @param {object}: form, Related form
@@ -6358,18 +6393,36 @@ xCase.extendNamespace = function (path, newClass) {
                 type: "joinFork",
                 id: this.getFieldId(modelField) + serial,
                 deleteOnCompletion: true,
-                callback: fn,
+                callback: function() {
+                    fn();
+                },
                 events: evs
             });
+            this.deferredStack = [];
+            this.deferredModels = [];
             this.oneDirectional(modelField, channel, serial);
             PMDynaform.EventBus.emit({
                 channel: "dependencies",
                 event: this.getFieldId(modelField) + serial,
                 payload: ""
             });
+
+            $.when.apply($, that.deferredStack).then(
+                function () {
+                    that. runDeferredSetOnChange();
+                }
+            );
         } else if (_.isFunction(fn)) {
             fn();
         }
+    };
+    /**
+     * Run all deferred setOnchange callbacks
+     */
+    DependentsFieldManager.prototype.runDeferredSetOnChange = function () {
+        _.forEach(this.deferredModels, function (el) {
+            el.runDeferredSetOnChange();
+        });
     };
     /**
      * Create a dependencies callback in asc order
@@ -6391,6 +6444,9 @@ xCase.extendNamespace = function (path, newClass) {
                         events: [{ event: that.getFieldId(modelField) + serial }]
                     });
                 } else {
+                    var dfd = jQuery.Deferred();
+                    that.deferredStack.push(dfd.promise());
+                    that.deferredModels.push(el)
                     PMDynaform.EventBus.subscribe({
                         channel: channel,
                         type: "joinFork",
@@ -6398,7 +6454,9 @@ xCase.extendNamespace = function (path, newClass) {
                         deleteOnCompletion: true,
                         callback: function () {
                             var dt = that.getDependenciesData(el);
-                            el.executeDependency(dt, serial);
+                            el.executeDependency(dt, serial, function (){
+                                dfd.resolve(el);
+                            });
                         },
                         events: [{ event: that.getFieldId(modelField) + serial }]
                     });
@@ -7815,7 +7873,9 @@ xCase.extendNamespace = function (path, newClass) {
                 itemField,
                 itemsField = this.items.asArray(),
                 filesNoUploaded = [],
+                filesWithError = [], 
                 field,
+                errorCollections,
                 hasLoadingFields = false;
 
             if (itemsField.length > 0) {
@@ -7838,7 +7898,13 @@ xCase.extendNamespace = function (path, newClass) {
                     }
                     // Verify if there is getFilesNotUploaded method
                     if (field.getFilesNotUploaded && typeof field.getFilesNotUploaded === "function") {
-                      filesNoUploaded = filesNoUploaded.concat(field.getFilesNotUploaded());
+                        errorCollections = field.getFilesNotUploaded();
+                        if (errorCollections.uploading) {
+                            filesNoUploaded = filesNoUploaded.concat(errorCollections.uploading);
+                        }
+                        if (field.model.get("required") && errorCollections.error) {
+                            filesWithError = filesWithError.concat(errorCollections.error);
+                        }
                     }
                 }
             }
@@ -7849,6 +7915,10 @@ xCase.extendNamespace = function (path, newClass) {
             if (filesNoUploaded.length > 0) {
                 formValid = false;
                 this.showFilesNoUploaded(filesNoUploaded);
+            }
+            if (filesWithError.length > 0) {
+                formValid = false;
+                this.showFilesWithError(filesWithError);
             }
             if (formValid) {
                 for (i = 0; i < itemsField.length; i += 1) {
@@ -8023,6 +8093,30 @@ xCase.extendNamespace = function (path, newClass) {
                     message = "Form cannot be submitted because file(s) {%%%FILES%%%} (are/is) didn't upload correctly," +
                         " remove the files from the form or upload the files again".translate();
                 }
+                nameFiles.push(files[i].name);
+            }
+            if (files.length > 0) {
+                message = message.replace("{%%%FILES%%%}", nameFiles);
+                flashModel = {
+                    message: message,
+                    startAnimation: 1000,
+                    type: "danger",
+                    duration: 4000,
+                    absoluteTop: true
+                };
+                this.project.flashMessage(flashModel);
+            }
+        },
+        /**
+         * Show flash message about the files with errors.
+         * @param files
+         */
+        showFilesWithError: function (files) {
+            var flashModel,
+                i,
+                nameFiles = [],
+                message = "Form cannot be submitted because file(s) {%%%FILES%%%} (are/is) invalid".translate();
+            for (i = 0; i < files.length; i += 1) {
                 nameFiles.push(files[i].name);
             }
             if (files.length > 0) {
@@ -8721,26 +8815,8 @@ xCase.extendNamespace = function (path, newClass) {
         showQueryFailMessage: function () {
             var message = "There was an error when populating the values of field".translate();
             message = message + " " + this.model.get("label");
-            message = '<strong>Error: </strong>' + message;
-            $.notify({
-                // options
-                message: message
-            }, {
-                // settings
-                type: 'danger',
-                spacing: 10,
-                allow_dismiss: true,
-                delay: 6000,
-                timer: 1000,
-                placement: {
-                    from: "top",
-                    align: "center"
-                },
-                animate: {
-                    enter: 'animated fadeInDown',
-                    exit: 'animated fadeOutUp'
-                }
-            });
+            message = 'Error: ' + message;
+            console.error(message);
             return this;
         },
         /**
@@ -9518,8 +9594,13 @@ xCase.extendNamespace = function (path, newClass) {
                                 }
                                 break;
                             default:
-                                control = $(cell.$el.find(".form-control"));
-                                hiddenControls = element.find("input[type='hidden']");
+                                if (type === "datetime") {
+                                    hiddenControls = $(cell.$el.find(".form-control"));
+                                    control= element.find("input[type='hidden']");
+                                } else {
+                                    control = $(cell.$el.find(".form-control"));
+                                    hiddenControls = element.find("input[type='hidden']");
+                                }
                                 if (this.model.get("variable") !== "") {
                                     nameControl = "form" + this.changeIdField(this.model.get("name"), i + 1, cell.model.get("columnName"));
                                     nameHiddeControl = nameControl.substring(0, nameControl.length - 1).concat("_label]");
@@ -10533,6 +10614,7 @@ xCase.extendNamespace = function (path, newClass) {
                         cell.model.set("toDraw", true);
                         break;
                     case 'dropdown':
+                        cell.model.set({toDraw: false, silent:true});
                         cell.model.set({ "data": fixedData }, { silent: true });
                         cell.model.set("toDraw", true);
                         break;
@@ -14696,7 +14778,7 @@ xCase.extendNamespace = function (path, newClass) {
             if (this.model.get('hint') !== '') {
                 this.enableTooltip();
             }
-            this.setNameHiddenControl();
+            this.setNameHiddenControlViewMode();
             this.model.set({ "toDraw": false }, { silent: true });
         },
         /**
@@ -14799,6 +14881,24 @@ xCase.extendNamespace = function (path, newClass) {
             if (this.el) {
                 if (this.model.get("group") === "grid") {
                     hidden = this.$el.find("input[type = 'hidden']")[0];
+                    name = this.model.get("name");
+                    name = name.substring(0, name.length - 1).concat("_label]");
+                    hidden.name = "form" + name;
+                    hidden.id = "form" + name;
+                }
+            }
+            return this;
+        },
+        /**
+         * Update the name in hidden input mode view
+         * @returns {SuggestView}
+         */
+        setNameHiddenControlViewMode: function () {
+            var hidden,
+                name;
+            if (this.el) {
+                if (this.model.get("group") === "grid") {
+                    hidden = this.$el.find(".label-hidden")[0];
                     name = this.model.get("name");
                     name = name.substring(0, name.length - 1).concat("_label]");
                     hidden.name = "form" + name;
@@ -14953,15 +15053,13 @@ xCase.extendNamespace = function (path, newClass) {
          * @returns {SuggestView}
          */
         setData: function (data) {
-            var dataObject;
-            if (typeof data === "object") {
-                dataObject = {
-                    value: data['value'] !== undefined ? data['value'] : "",
-                    label: data['label'] !== undefined ? data['label'] : ""
-                };
-                this.setValue(data['value']);
-                this.render();
-            }
+            var fixedData = {
+                value: data.value || '',
+                label: data.label || data.value || ''
+            };
+            this.model.set({ "data": fixedData }, { silent: true });
+            this.model.set({ "value": fixedData.value }, { silent: true });
+            this.model.set("toDraw", true);
             return this;
         },
         /**
@@ -15114,7 +15212,14 @@ xCase.extendNamespace = function (path, newClass) {
             if (this.model.get("dependencyDidUpdate").error && this.model.get("dependencyDidUpdate").error !== "abort") {
 
             }
-            this.setOption(this.model.get("data"));
+            if (this.model.get("mode") != "view") {
+                this.setOption(this.model.get("data"));
+            } else {
+                this.model.set({
+                    data: this.model.get("data")
+                }, { silent: true });
+                this.model.set({ "toDraw": true });
+            }
             this.onFieldAssociatedHandler();
         },
         /**
@@ -15333,7 +15438,9 @@ xCase.extendNamespace = function (path, newClass) {
         },
         render: function () {
             var hidden, name, newDateTime, $textAreaContent, msie;
-            this.setFirstOption();
+            if(this.model.get("originalType") !== "radio"){
+                this.setFirstOption();
+            }
             this.$el.html(this.template(this.model.toJSON()));
             if (this.model.get("hint") !== "") {
                 this.enableTooltip();
@@ -16738,8 +16845,6 @@ xCase.extendNamespace = function (path, newClass) {
         },
         /**
          * Prepares the value in the required format.
-         * if has time we will use "datetimeIsoFormat" format
-         * if has not we will use "dateIsoFormat" format
          * @param userValue
          * @returns {object}
          */
@@ -18323,38 +18428,28 @@ xCase.extendNamespace = function (path, newClass) {
         renderWeb: function (items) {
             var ieVersion,
                 type = this.model.get("type"),
-                i,
+                that = this,
+                element,
+                fData,
                 viewFiles,
-                elements = [],
-                container = this.$el.find(".pmdynaform-file-control"),
-                downloadLink,
-                data,
-                linkService = "showDocument";
+                container = this.$el.find(".pmdynaform-file-control");
             if (_.isArray(items)) {
-                this.model.set({"data": {"value": items}});
+                this.model.set({ "data": { "value": items } });
                 container.empty();
                 ieVersion = PMDynaform.core.Utils.checkValidIEVersion();
-                if (type === "imageMobile") {
-                    elements = this.model.remoteProxyData(items);
-                } else {
-                    for (i = 0; i < items.length; i += 1) {
-                        data = {
-                            uid: items[i],
-                            type: linkService
-                        };
-                        downloadLink = this.project.webServiceManager.showDocument(data);
-                        data = $.extend(true, this.model.urlFileStreaming(items[i]), {downloadLink: downloadLink});
-                        elements.push(data);
-                    }
-                }
-                viewFiles = this.templateRenderingWeb({
-                    elements: elements,
-                    type: type,
-                    ieVersion: ieVersion
+                _.forEach(items, function (e) {
+                    element = that.model.remoteProxyData([e], function (dt) {
+                        fData = that.model.formatArrayImages(dt);
+                        viewFiles = that.templateRenderingWeb({
+                            elements: fData,
+                            type: type,
+                            ieVersion: ieVersion
+                        });
+                        container.append(viewFiles);
+                    });
                 });
-                container.append(viewFiles);
             }
-        },
+        }, 
         /**
          * Set File data from mobile api
          * @param arrayFiles
@@ -21586,7 +21681,7 @@ xCase.extendNamespace = function (path, newClass) {
          * @param {*} serial
          * @returns {FieldModel} 
          */
-        executeDependency: function (dt, serial) {
+        executeDependency: function (dt, serial , fn) {
             var that = this,
                 data = _.extend(dt, this.preparePostData()),
                 callback = function (data, err) {
@@ -21597,6 +21692,7 @@ xCase.extendNamespace = function (path, newClass) {
                         event: that.getFieldId() + serial,
                         payload: ""
                     });
+                    fn();
                     // Hack to manage when we need update the grid columns model
                     rootField = that.get("form").get("rootField");
                     if (rootField && rootField.get("group") !== "grid" && that.get("group") == "grid") {
@@ -21614,6 +21710,16 @@ xCase.extendNamespace = function (path, newClass) {
                 this.executeQueryMobile(data, callback);
             } else {
                 this.executeQueryWeb(data, this.get("form").get("isSync") ? false : true, callback);
+            }
+            return this;
+        },
+        /**
+         * Run the setOnchange callback from a model
+         * @chainable
+         */
+        runDeferredSetOnChange: function () {
+            if (this.get("view")) {
+                this.get("view").executeChangeCallback();
             }
             return this;
         },
@@ -26533,15 +26639,13 @@ xCase.extendNamespace = function (path, newClass) {
          * @param arrayImages
          * @returns [{id:"123456789...", base64: "sdhfg%4hd/f24g.."}] || []
          */
-        remoteProxyData: function (arrayImages) {
+        remoteProxyData: function (arrayImages, fn) {
             var project = this.get("project"),
                 response,
-                requestManager = project && PMDynaform.core.ProjectMobile ? project.getRequestManager() : null,
                 respData = [],
                 data;
             data = this.formatArrayImagesToSend(arrayImages);
-            response = requestManager ? requestManager.imagesInfo(data) : project.webServiceManager.imagesInfo(data);
-            respData = this.formatArrayImages(response);
+            response = project.webServiceManager.getImages(data, fn);
             return respData;
         },
         /**
@@ -27132,6 +27236,8 @@ xCase.extendNamespace = function (path, newClass) {
             tabIndex: "",
             ariaLabel: "",
             labelButton: "Choose Files".translate(),
+            labelMaxFile: "The maximum number of files allowed was reached".translate(),
+            filesUpload: 0,
             mode: "edit",
             name: PMDynaform.core.Utils.generateName("file"),
             required: false,
@@ -27325,7 +27431,8 @@ xCase.extendNamespace = function (path, newClass) {
             formData: null,
             fileArray: [],
             messageValidations: "This field is required.".translate(),
-            enableValidate: true
+            enableValidate: true,
+            disableUpload: false
         },
         initialize: function (options) {
             if (_.isString(this.get("variable")) && this.get("variable") !== "") {
@@ -27461,6 +27568,7 @@ xCase.extendNamespace = function (path, newClass) {
                 fileModel.set("errorType", true);
             }
             files.updateIndex();
+            this.set('filesUpload', this.get('filesUpload') + 1);
             return fileModel;
         },
         /**
@@ -27681,6 +27789,11 @@ xCase.extendNamespace = function (path, newClass) {
             }
             this.loadDataFromAppData();
             this.model.updateData();
+            this.model.set('filesUpload', this.model.get('fileCollection').length);
+            if (this.model.get("mode") === "edit" && this.model.get('group') === 'form') {
+                this.validationMaxFileNumber(this.model.get('maxFileNumber'));
+                this.verifyMaxFile();
+            }
             this.populateItemsPrintMode(this.getKeyLabel());
             PMDynaform.view.Field.prototype.render.apply(this, arguments);
             return this;
@@ -27876,6 +27989,7 @@ xCase.extendNamespace = function (path, newClass) {
                 that.processFiles(files);
                 event.target.value = "";
                 that.$el.find(that.hiddenFile).remove();
+                that.verifyMaxFile();
                 return false;
             };
         },
@@ -27911,8 +28025,11 @@ xCase.extendNamespace = function (path, newClass) {
             var index = 0,
                 fileView,
                 fileModel,
-                box = this.$el.find(".pmdynaform-multiplefile-box");
-            if (files.length) {
+                box = this.$el.find(".pmdynaform-multiplefile-box"),
+                maxFileNumber = this.model.get('maxFileNumber'),
+                filesUpload = this.model.get('fileCollection').length,
+                slotAvailableFiles = maxFileNumber - filesUpload;
+            if ((slotAvailableFiles > 0 && slotAvailableFiles >= files.length) || maxFileNumber === 0) {
                 for (index = 0; index < files.length; index += 1) {
                     fileModel = this.model.addFileModel(files[index], "edit");
                     //create an instance of a file
@@ -27928,6 +28045,14 @@ xCase.extendNamespace = function (path, newClass) {
                     fileModel.fileUploadMultipart();
                     fileModel.set('fromWizard', false);
                 }
+            } else {
+                window.dynaform.flashMessage({
+                    emphasisMessage: "Operation not allowed: ".translate(),
+                    message: "You can only upload ".translate() + maxFileNumber + " files.".translate(),
+                    type: 'warning',
+                    absoluteTop: true,
+                    duration: 3000
+                });
             }
             this.validate();
             this.populateItemsPrintMode(this.model.getKeyLabel());
@@ -28136,6 +28261,65 @@ xCase.extendNamespace = function (path, newClass) {
             }
         },
         /**
+         * Verify the max file number.
+         * @returns {MultipleFileView}
+         */
+        verifyMaxFile: function () {
+            if (this.model.get('maxFileNumber') !== 0) {
+                if (this.model.get('filesUpload') >= this.model.get('maxFileNumber')) {
+                    this.disableUpload();
+                } else if (this.model.get('filesUpload') < this.model.get('maxFileNumber')) {
+                    this.enableUpload();
+                }
+            }
+            return this;
+        },
+        /**
+         * Disable upload for multiple file.
+         * @returns {MultipleFileView}
+         */
+        disableUpload: function () {
+            var that = this,
+                view = that.model.get('group') === 'form' ? that.$el : that.uploadModalView.modal;
+            if (!that.model.get('disableUpload')) {
+                view.find('.btn-uploadfile').addClass('btn-uploadfile-disabled');
+                view.find('.btn-uploadfile').attr('disabled', 'disabled');
+                view.find('.btn-uploadfile')[0].innerHTML = that.model.get('labelMaxFile');
+                view.find('.btn-uploadfile')[0].innerText = that.model.get('labelMaxFile');
+                view.find('.btn-uploadfile').removeClass('btn-uploadfile');
+                that.model.set('disableUpload', true);
+            }
+            return that;
+        },
+        /**
+         * Enable upload for multiple file.
+         * @returns {MultipleFileView}
+         */
+        enableUpload: function () {
+            var that = this,
+                view = that.model.get('group') === 'form' ? that.$el : that.uploadModalView.modal;
+            if (that.model.get('disableUpload')) {
+                view.find('.btn-uploadfile-disabled').addClass('btn-uploadfile');
+                view.find('.btn-uploadfile').attr('disabled', false);
+                view.find('.btn-uploadfile-disabled')[0].innerHTML = that.model.get('labelButton');
+                view.find('.btn-uploadfile-disabled')[0].innerText = that.model.get('labelButton');
+                view.find('.btn-uploadfile-disabled').removeClass('btn-uploadfile-disabled');
+                that.model.set('disableUpload', false);
+            }
+            return that;
+        },
+        /**
+         * Validation maxFileNumber if string the value is 0.
+         * @param maxFileNumber
+         */
+        validationMaxFileNumber: function (maxFileNumber) {
+            if (isNaN(maxFileNumber) && typeof maxFileNumber === 'string') {
+                this.model.set('maxFileNumber', 0);
+            } else {
+                this.model.set('maxFileNumber', parseInt(maxFileNumber));
+            }
+        },
+        /*
          * Remove the inputs type hidden.
          */
         clearHiddenByModel: function () {
@@ -29154,7 +29338,8 @@ xCase.extendNamespace = function (path, newClass) {
                 }
                 this.model.get('parent').resetInputFile();
             }
-
+            parentView.model.set('filesUpload', parentView.model.get('filesUpload') - 1);
+            parentView.verifyMaxFile();
             e.preventDefault();
 
             return this;
@@ -29255,14 +29440,20 @@ xCase.extendNamespace = function (path, newClass) {
          */
         getFilesNotUploaded: function() {
             var index,
-                resp = false,
-                unCompletedFiles= [];
+                unCompletedFiles= [],
+                errorFiles = [];
             for (index = 0; index < this.models.length; index += 1) {
-                if (!this.models[index].get("completed") && !this.models[index].get("error")) {
-                    unCompletedFiles.push({ "name": this.models[index].attributes.file.name});
+                if (!this.models[index].get("completed") && !this.models[index].get("error")    ) {
+                    unCompletedFiles.push({"name": this.models[index].attributes.file.name});
+                }
+                if (this.models[index].get("error")    ) {
+                    errorFiles.push({"name": this.models[index].attributes.file.name});
                 }
             }
-            return unCompletedFiles;
+            return {
+                    uploading: unCompletedFiles,
+                    error: errorFiles
+                };
         }
     });
 
@@ -29381,7 +29572,8 @@ xCase.extendNamespace = function (path, newClass) {
      */
     var UploadModalModel = PMDynaform.file.MultipleFileModel.extend({
         defaults: {
-            parent: null
+            parent: null,
+            disableUpload: false
         },
         /**
          * Adds the file model to collection to drive all files in a collection
@@ -29424,12 +29616,14 @@ xCase.extendNamespace = function (path, newClass) {
                 fileModel = files.add(fileModel);
                 files.updateIndex();
             }
+            parentFile.set('filesUpload', parentFile.get('filesUpload') + 1);
             return fileModel;
         }
 
     });
     PMDynaform.extendNamespace("PMDynaform.file.UploadModalModel", UploadModalModel);
 }());
+
 (function () {
     var UploadModal = Backbone.View.extend({
         timeHide: 1000,
@@ -29438,6 +29632,7 @@ xCase.extendNamespace = function (path, newClass) {
         $hiddenFile: null,
         labelButton: "Choose Files".translate(),
         labelClose: "Close".translate(),
+        labelMaxFile: "The maximum number of files allowed was reached".translate(),
         $hiddens: [],
         initialize: function () {
             //TODO: no need params.
@@ -29455,7 +29650,8 @@ xCase.extendNamespace = function (path, newClass) {
                 mode = "edit",
                 ext = "",
                 view,
-                parent = this.model.get("parent");
+                parent = this.model.get("parent"),
+                viewParent = this.model.get("parent").get('view');
 
             if ($('#modalUpload').length) {
                 $('#modalUpload').remove();
@@ -29469,12 +29665,17 @@ xCase.extendNamespace = function (path, newClass) {
                 extensions: ext
             }));
             $('body').append(this.modal);
-
-            this.show();
-            this.eventsBinding();
             this.modal.find('.btn-uploadfile').on('click', function (e) {
                 that.onClickUploadButton(e);
             });
+            viewParent.model.set('filesUpload', viewParent.model.get('fileCollection').length);
+            if (mode === 'edit') {
+                viewParent.model.set('disableUpload', false);
+                viewParent.validationMaxFileNumber(viewParent.model.get('maxFileNumber'));
+                viewParent.verifyMaxFile();
+            }
+            this.show();
+            this.eventsBinding();
             box = this.modal.find(".pmdynaform-multiplefile-box");
             if (collection instanceof Backbone.Collection) {
                 for (i = 0; i < collection.length; i += 1) {
@@ -29548,6 +29749,7 @@ xCase.extendNamespace = function (path, newClass) {
             this.processFiles(files);
             event.target.value = "";
             parent.get('view').populateItemsPrintMode(parent.getKeyLabel());
+            parent.get('view').verifyMaxFile();
             return false;
         },
         /**
@@ -29560,8 +29762,11 @@ xCase.extendNamespace = function (path, newClass) {
             var index = 0,
                 fileView,
                 fileModel,
-                box = this.modal.find(".pmdynaform-multiplefile-box");
-            if (files.length) {
+                box = this.modal.find(".pmdynaform-multiplefile-box"),
+                maxFileNumber = this.model.get('parent').get('maxFileNumber'),
+                filesUpload = this.model.get('parent').get('fileCollection').length,
+                slotAvailableFiles = maxFileNumber - filesUpload;
+            if ((slotAvailableFiles > 0 && slotAvailableFiles >= files.length) || maxFileNumber === 0) {
                 for (index = 0; index < files.length; index += 1) {
                     fileModel = this.model.addFileModel(files[index], "edit", this);
 
@@ -29578,6 +29783,14 @@ xCase.extendNamespace = function (path, newClass) {
                     fileModel.set('fromWizard', false);
                     this.model.get('parent').updateGridDetail(fileModel);
                 }
+            } else {
+                window.dynaform.flashMessage({
+                    emphasisMessage: "Operation not allowed: ".translate(),
+                    message: "You can only upload ".translate() + maxFileNumber + " files.".translate(),
+                    type: 'warning',
+                    absoluteTop: true,
+                    duration: 3000
+                });
             }
             return this;
         },

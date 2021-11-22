@@ -7,7 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(\ProcessMaker\Model\TaskScheduler::class, function (Faker $faker) {
     return [
-        'id' => G::generateUniqueID(),
+        'id' => $faker->unique()->numberBetween(5000),
         'title' => $faker->title,
         'startingTime' => $faker->dateTime(),
         'endingTime' => $faker->dateTime(),

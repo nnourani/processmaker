@@ -192,13 +192,13 @@
               {name : 'TAS_TITLE'},
               {name : 'PRO_STATUS'},
               {name : 'PRO_STATUS_LABEL'},
-              {name : 'DEL_INIT_DATE'},
+              {name : 'DEL_INIT_DATE_LABEL'},
               {name : 'PRO_DEBUG'},
               {name : 'PRO_DEBUG_LABEL'},
-              {name : 'DEL_DELEGATE_DATE'},
+              {name : 'DEL_DELEGATE_DATE_LABEL'},
               {name : 'CASES_COUNT', type:'float'},
               {name : 'APP_TYPE'},
-              {name : 'DEL_FINISH_DATE'},
+              {name : 'DEL_FINISH_DATE_LABEL'},
               {name : 'APP_ENABLE_ACTION_DATE'},
               {name : 'APP_DISABLE_ACTION_DATE'}
             ]
@@ -282,9 +282,9 @@
               color = r.get('PRO_STATUS') == 'ACTIVE'? 'green': 'red';
               return String.format("<font color='{0}'>{1}</font>", color, v);
             }},*/
-            {header: _("ID_TASK_TRANSFER"), dataIndex: 'DEL_DELEGATE_DATE', width: 60, renderer:startDateRender},
-            {header: _("ID_START_DATE"), dataIndex: 'DEL_INIT_DATE', width: 60, renderer: startDateRender},
-            {header: _("ID_END_DATE"), dataIndex: 'DEL_FINISH_DATE', width: 60, renderer:startDateRender},
+            {header: _("ID_TASK_TRANSFER"), dataIndex: 'DEL_DELEGATE_DATE_LABEL', width: 60},
+            {header: _("ID_START_DATE"), dataIndex: 'DEL_INIT_DATE_LABEL', width: 60},
+            {header: _("ID_END_DATE"), dataIndex: 'DEL_FINISH_DATE_LABEL', width: 60},
             {header: _("ID_ACTION"), dataIndex: 'APP_TYPE', width: 50, renderer: actionRenderingTranslation},
             {header: _("ID_ENABLE_ACTION"), dataIndex: 'APP_ENABLE_ACTION_DATE', width: 70, renderer:startDateRender},
             {header: _("ID_DISABLE_ACTION"), dataIndex: 'APP_DISABLE_ACTION_DATE', width: 70, renderer:startDateRender}

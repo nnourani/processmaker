@@ -12,6 +12,7 @@ use Luracast\Restler\RestException;
 use PmDynaform;
 use Process as ModelProcess;
 use ProcessMaker\BusinessModel\Cases as BusinessModelCases;
+use ProcessMaker\BusinessModel\Cases\CasesList;
 use ProcessMaker\BusinessModel\DynaForm as BusinessModelDynaForm;
 use ProcessMaker\BusinessModel\Light as BusinessModelLight;
 use ProcessMaker\BusinessModel\Lists;
@@ -108,24 +109,20 @@ class Light extends Api
 
     /**
      * Get list counters
-     * @return array
-     *
-     * @copyright Colosa - Bolivia
      *
      * @url GET /counters
+     * @status 200
+     *
+     * @return array
      */
     public function countersCases()
     {
         try {
-            $userId = $this->getUserId();
+            $usrUid = $this->getUserId();
+            $count = new CasesList();
+            $result = $count->getAllCounters($usrUid);
+            $result = $this->parserCountersCases($result);
 
-                $case = new BusinessModelCases();
-                $arrayListCounter = $case->getListCounters(
-                    $userId,
-                    ['to_do', 'draft', 'sent', 'selfservice', 'paused', 'completed', 'cancelled']
-                );
-
-            $result = $this->parserCountersCases($arrayListCounter);
         } catch (Exception $e) {
             throw (new RestException(Api::STAT_APP_EXCEPTION, $e->getMessage()));
         }
@@ -153,7 +150,7 @@ class Light extends Api
         );
         $response = array();
         foreach ($data as $key => $counterList) {
-            if (isset($structure[$counterList['item']])) {
+            if (isset($structure[isset($counterList['item']) ? $counterList['item'] : null])) {
                 $name = $structure[$counterList['item']];
                 $response[$name] = $counterList['count'];
             } else {
@@ -1778,6 +1775,10 @@ class Light extends Api
         try {
             $usr_uid = $this->getUserId();
             $cases = new BusinessModelCases();
+            //for propel connection is required $_SESSION['PROCESS']
+            if (!empty($pro_uid)) {
+                $_SESSION['PROCESS'] = $pro_uid;
+            }
             $response = $cases->getCaseVariables($app_uid, $usr_uid, $dyn_uid, $pro_uid, $act_uid, $app_index);
 
             return DateTime::convertUtcToTimeZone($response);

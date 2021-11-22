@@ -1,4 +1,7 @@
 <?php
+
+use ProcessMaker\Core\System;
+
 try {
     global $G_PUBLISH;
     $G_PUBLISH = new Publisher();

@@ -2,6 +2,7 @@
 
 use ProcessMaker\Core\System;
 use ProcessMaker\GmailOAuth\GmailOAuth;
+use ProcessMaker\Office365OAuth\Office365OAuth;
 
 $option = (isset($_POST["option"])) ? $_POST["option"] : "";
 $response = [];
@@ -232,6 +233,8 @@ switch ($option) {
     case "createAuthUrl":
         try {
             $gmailOAuth = new GmailOAuth();
+            $gmailOAuth->setServer($_POST['server']);
+            $gmailOAuth->setPort($_POST['port']);
             $gmailOAuth->setClientID($_POST['clientID']);
             $gmailOAuth->setClientSecret($_POST['clientSecret']);
             $gmailOAuth->setRedirectURI(System::getServerMainPath() . "/emailServer/emailServerGmailOAuth");
@@ -251,6 +254,38 @@ switch ($option) {
                 "data" => $client->createAuthUrl()
             ];
             $_SESSION['gmailOAuth'] = $gmailOAuth;
+        } catch (Exception $e) {
+            $response = [
+                "status" => 500,
+                "message" => $e->getMessage()
+            ];
+        }
+        break;
+    case "createAuthUrlOffice365":
+        try {
+            $office365OAuth = new Office365OAuth();
+            $office365OAuth->setServer($_POST['server']);
+            $office365OAuth->setPort($_POST['port']);
+            $office365OAuth->setClientID($_POST['clientID']);
+            $office365OAuth->setClientSecret($_POST['clientSecret']);
+            $office365OAuth->setRedirectURI(System::getServerMainPath() . "/emailServer/emailServerOffice365OAuth");
+            $office365OAuth->setEmailEngine($_POST['emailEngine']);
+            $office365OAuth->setFromAccount($_POST['fromAccount']);
+            $office365OAuth->setSenderEmail($_POST['senderEmail']);
+            $office365OAuth->setSenderName($_POST['senderName']);
+            $office365OAuth->setSendTestMail((int) $_POST['sendTestMail']);
+            $office365OAuth->setMailTo($_POST['mailTo']);
+            $office365OAuth->setSetDefaultConfiguration((int) $_POST['setDefaultConfiguration']);
+
+            if (!empty($_POST['emailServerUid'])) {
+                $office365OAuth->setEmailServerUid($_POST['emailServerUid']);
+            }
+            $client = $office365OAuth->getOffice365Client();
+            $response = [
+                "status" => 200,
+                "data" => $client->getAuthorizationUrl($office365OAuth->getOptions())
+            ];
+            $_SESSION['office365OAuth'] = $office365OAuth;
         } catch (Exception $e) {
             $response = [
                 "status" => 500,

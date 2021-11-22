@@ -6,7 +6,7 @@ use Faker\Generator as Faker;
 
 $factory->define(\ProcessMaker\Model\AppAssignSelfServiceValue::class, function(Faker $faker) {
     return [
-        'ID' => $faker->unique()->numberBetween(1, 2000),
+        'ID' => $faker->unique()->numberBetween(5000),
         'APP_UID' => G::generateUniqueID(),
         'DEL_INDEX' => 2,
         'PRO_UID' => G::generateUniqueID(),

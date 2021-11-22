@@ -16,6 +16,8 @@
   */
 require_once 'classes/model/om/BaseAuthenticationSource.php';
 
+use Illuminate\Support\Facades\Log;
+
  /**
   * @package  rbac-classes-model
   */
@@ -69,6 +71,7 @@ class AuthenticationSource extends BaseAuthenticationSource {
         $oConnection->begin();
         $iResult = $oAuthenticationSource->save();
         $oConnection->commit();
+        Log::channel(':ldapAdvanced')->info("create", Bootstrap::context($aData));
 
         $authSourceServerName = isset($aData['AUTH_SOURCE_SERVER_NAME']) ? ' - Server Name: '.$aData['AUTH_SOURCE_SERVER_NAME'] : '';
         $authSourcePort = isset($aData['AUTH_SOURCE_PORT']) ? ' - Port: '.$aData['AUTH_SOURCE_PORT'] : '';
@@ -122,6 +125,7 @@ class AuthenticationSource extends BaseAuthenticationSource {
   	    	$oConnection->begin();
           $iResult = $oAuthenticationSource->save();
           $oConnection->commit();
+          Log::channel(':ldapAdvanced')->info("update", Bootstrap::context($aData));
           G::auditLog("UpdateAuthSource", "Authentication Source Name: ".$aData['AUTH_SOURCE_NAME']." - Authentication Source ID: (".$aData['AUTH_SOURCE_UID'].") ".$authSourceServerName.$authSourcePort.$authSourceEnabledTLS.$authSourceVersion.$authSourceBaseDn.$authAnonymous.$authSourceSearchUser.$authSourceLdapType.$authSourceIdentifier.$authSourceFilter);
           return $iResult;
   	    }
@@ -131,6 +135,7 @@ class AuthenticationSource extends BaseAuthenticationSource {
   	      foreach($aValidationFailures as $oValidationFailure) {
             $sMessage .= $oValidationFailure->getMessage() . '<br />';
           }
+          Log::channel(':ldapAdvanced')->error($sMessage, Bootstrap::context($aData));
           throw(new Exception('The registry cannot be updated!<br />'.$sMessage));
   	    }
       }
@@ -158,6 +163,7 @@ class AuthenticationSource extends BaseAuthenticationSource {
   	  	$oConnection->begin();
         $iResult = $oAuthenticationSource->delete();
         $oConnection->commit();
+        Log::channel(':ldapAdvanced')->info("remove", Bootstrap::context(["AUTH_SOURCE_UID" => $sUID]));
 
         G::auditLog("DeleteAuthSource", "Authentication Source Name: ".$authenticationSource['AUTH_SOURCE_NAME']." Authentication Source ID: (".$sUID.") ");
         return $iResult;

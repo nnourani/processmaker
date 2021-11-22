@@ -83,7 +83,9 @@ class System
         'report_table_floating_number' => 4,
         'report_table_double_number' => 4,
         'ext_ajax_timeout' => 600000,
-        'disable_task_manager_routing_async' => '0'
+        'disable_task_manager_routing_async' => '0',
+        'on_one_server_enable' => 0,
+        'at_risk_delegation_max_time' => '0.2',
     ];
 
     /**
@@ -1245,6 +1247,11 @@ class System
             $config['disable_task_manager_routing_async'] = self::$defaultConfig['disable_task_manager_routing_async'];
         }
 
+        $value = $config['at_risk_delegation_max_time'];
+        if ($value < 0 || $value > 1) {
+            $config['at_risk_delegation_max_time'] = self::$defaultConfig['at_risk_delegation_max_time'];
+        }
+
         return $config;
     }
 
@@ -1253,6 +1260,7 @@ class System
      * @access public
      * @param string $globalIniFile
      * @return array of execute query Black list
+     * @deprecated since version 3.6.4
      */
     public static function getQueryBlackList($globalIniFile = '')
     {

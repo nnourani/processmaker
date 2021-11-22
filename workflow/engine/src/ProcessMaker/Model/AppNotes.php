@@ -34,6 +34,7 @@ class AppNotes extends Model
      */
     protected $fillable = [
         'APP_UID',
+        'APP_NUMBER',
         'USR_UID',
         'NOTE_DATE',
         'NOTE_CONTENT',
@@ -58,6 +59,18 @@ class AppNotes extends Model
     }
 
     /**
+     * Scope a query to filter an specific case id
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @param  string $appNumber
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAppNumber($query, int $appNumber)
+    {
+        return $query->where('APP_NUMBER', $appNumber);
+    }
+
+    /**
      * Return the documents related to the case
      *
      * @param string $appUid
@@ -72,6 +85,7 @@ class AppNotes extends Model
         $query = AppNotes::query()->select([
             'NOTE_ID',
             'APP_UID',
+            'APP_NUMBER',
             'NOTE_DATE',
             'NOTE_CONTENT',
             'NOTE_TYPE',
@@ -106,14 +120,29 @@ class AppNotes extends Model
      *
      * @param string $appUid
      *
-     * @return array
+     * @return int
      */
     public static function getTotal(string $appUid)
     {
         $query = AppNotes::query()->select(['NOTE_ID']);
         $query->appUid($appUid);
-        $total = $query->get()->count();
+        $total = $query->count();
 
         return $total;
+    }
+
+    /**
+     * Return the total notes by case
+     *
+     * @param int $appNumber
+     *
+     * @return int
+     */
+    public static function total(int $appNumber)
+    {
+        $query = AppNotes::query()->select(['NOTE_ID']);
+        $query->appNumber($appNumber);
+
+        return $query->count();
     }
 }

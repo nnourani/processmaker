@@ -3591,7 +3591,7 @@ class XmlFormFieldDropdown extends XmlFormField
                 $html .= 'value="' . (($findValue != '') ? $findValue : $firstValue) . '" />';
             }
 
-            $this->selectedValue = ($findValue != "") ? $findValue : ($count == 0) ? $firstValue : "";
+            $this->selectedValue = (!empty($findValue) ? $findValue : ($count == 0)) ? $firstValue : "";
         } else {
             //Render Field showing only value;
             foreach ($this->option as $optValue => $optName) {

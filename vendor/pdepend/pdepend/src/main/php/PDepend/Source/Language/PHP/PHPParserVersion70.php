@@ -133,6 +133,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
             case Tokens::T_UNSET:
                 return true;
         }
+
         return parent::isConstantName($tokenType);
     }
 
@@ -146,7 +147,23 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
             case Tokens::T_CLASS:
                 return true;
         }
+
         return $this->isConstantName($tokenType);
+    }
+
+    /**
+     * @param integer $tokenType
+     * @return bool
+     */
+    protected function isTypeHint($tokenType)
+    {
+        switch ($tokenType) {
+            case Tokens::T_SELF:
+            case Tokens::T_PARENT:
+                return true;
+        }
+
+        return parent::isTypeHint($tokenType);
     }
 
     /**
@@ -167,8 +184,9 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     }
 
     /**
-     * @param \PDepend\Source\AST\AbstractASTCallable $callable
-     * @return \PDepend\Source\AST\AbstractASTCallable
+     * @template T of \PDepend\Source\AST\ASTCallable
+     * @param T $callable
+     * @return T
      */
     protected function parseCallableDeclarationAddition($callable)
     {
@@ -188,25 +206,28 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     /**
      * @return \PDepend\Source\AST\ASTType
      */
+    protected function parseEndReturnTypeHint()
+    {
+        switch ($this->tokenizer->peek()) {
+            case Tokens::T_ARRAY:
+                return $this->parseArrayType();
+            case Tokens::T_SELF:
+                return $this->parseSelfType();
+            case Tokens::T_PARENT:
+                return $this->parseParentType();
+            default:
+                return $this->parseTypeHint();
+        }
+    }
+
+    /**
+     * @return \PDepend\Source\AST\ASTType
+     */
     protected function parseReturnTypeHint()
     {
         $this->consumeComments();
 
-        switch ($tokenType = $this->tokenizer->peek()) {
-            case Tokens::T_ARRAY:
-                $type = $this->parseArrayType();
-                break;
-            case Tokens::T_SELF:
-                $type = $this->parseSelfType();
-                break;
-            case Tokens::T_PARENT:
-                $type = $this->parseParentType();
-                break;
-            default:
-                $type = $this->parseTypeHint();
-                break;
-        }
-        return $type;
+        return $this->parseEndReturnTypeHint();
     }
 
     /**
@@ -219,29 +240,23 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     {
         switch ($this->tokenizer->peek()) {
             case Tokens::T_ARRAY:
-                $type = $this->parseArrayType();
-                break;
+                return $this->parseArrayType();
 
             case Tokens::T_SELF:
-                $type = $this->parseSelfType();
-                break;
+                return $this->parseSelfType();
 
             case Tokens::T_STRING:
             case Tokens::T_BACKSLASH:
             case Tokens::T_NAMESPACE:
                 $name = $this->parseQualifiedName();
 
-                $type = $this->isScalarOrCallableTypeHint($name)
+                return $this->isScalarOrCallableTypeHint($name)
                     ? $this->parseScalarOrCallableTypeHint($name)
                     : $this->builder->buildAstClassOrInterfaceReference($name);
-                break;
 
             default:
-                $type = parent::parseTypeHint();
-                break;
+                return parent::parseTypeHint();
         }
-
-        return $type;
     }
 
     /**
@@ -259,16 +274,17 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
         $expr = $this->parseBraceExpression(
             $expr,
             $this->consumeToken(Tokens::T_PARENTHESIS_OPEN),
-            Tokens::T_PARENTHESIS_CLOSE
+            Tokens::T_PARENTHESIS_CLOSE,
+            Tokens::T_COMMA
         );
-        
+
         while ($this->tokenizer->peek() === Tokens::T_PARENTHESIS_OPEN) {
             $function = $this->builder->buildAstFunctionPostfix($expr->getImage());
             $function->addChild($expr);
             $function->addChild($this->parseArguments());
             $expr = $function;
         }
-        
+
         return $this->setNodePositionsAndReturn($expr);
     }
 
@@ -341,6 +357,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     protected function parseAnonymousClassDeclaration(ASTAllocationExpression $allocation)
     {
         $this->consumeComments();
+
         if (Tokens::T_CLASS !== $this->tokenizer->peek()) {
             return null;
         }
@@ -407,7 +424,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
             return $this->parseStaticMemberPrimaryPrefix($node);
         }
 
-        if ($this->tokenizer->peek() === Tokens::T_OBJECT_OPERATOR) {
+        if ($this->isNextTokenObjectOperator()) {
             return $this->parseMemberPrimaryPrefix($node);
         }
 
@@ -426,7 +443,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
             return $this->parseStaticMemberPrimaryPrefix($expr->getChild(0));
         }
 
-        if ($this->tokenizer->peek() === Tokens::T_OBJECT_OPERATOR) {
+        if ($this->isNextTokenObjectOperator()) {
             $node = count($expr->getChildren()) === 0 ? $expr : $expr->getChild(0);
             return $this->parseMemberPrimaryPrefix($node);
         }
@@ -452,7 +469,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     /**
      * In this method we implement parsing of PHP 7.0 specific expressions.
      *
-     * @return \PDepend\Source\AST\ASTNode
+     * @return \PDepend\Source\AST\ASTNode|null
      * @since 2.3
      */
     protected function parseExpressionVersion70()
@@ -475,6 +492,8 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
 
                 return $expr;
         }
+
+        return null;
     }
 
     /**
@@ -507,7 +526,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     }
 
     /**
-     * @param array $fragments
+     * @param array<string> $fragments
      * @return void
      */
     protected function parseUseDeclarationForVersion(array $fragments)
@@ -522,7 +541,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     }
 
     /**
-     * @param array $fragments
+     * @param array<string> $fragments
      * @return void
      */
     protected function parseUseDeclarationVersion70(array $fragments)
@@ -540,12 +559,18 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
                     $this->consumeToken($nextToken);
             }
 
+            if ($this->allowUseGroupDeclarationTrailingComma() &&
+                Tokens::T_CURLY_BRACE_CLOSE === $this->tokenizer->peek()
+            ) {
+                break;
+            }
+
             $subFragments = $this->parseQualifiedNameRaw();
             $this->consumeComments();
 
             $image = $this->parseNamespaceImage($subFragments);
 
-            if (Tokens::T_COMMA != $this->tokenizer->peek()) {
+            if (Tokens::T_COMMA !== $this->tokenizer->peek()) {
                 break;
             }
 
@@ -556,7 +581,9 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
             $this->useSymbolTable->add($image, join('', array_merge($fragments, $subFragments)));
         } while (true);
 
-        $this->useSymbolTable->add($image, join('', array_merge($fragments, $subFragments)));
+        if (isset($image, $subFragments)) {
+            $this->useSymbolTable->add($image, join('', array_merge($fragments, $subFragments)));
+        }
 
         $this->consumeToken(Tokens::T_CURLY_BRACE_CLOSE);
         $this->consumeComments();
@@ -565,7 +592,7 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
     }
 
     /**
-     * @param array $previousElements
+     * @param array<string> $previousElements
      * @return string|null
      */
     protected function parseQualifiedNameElement(array $previousElements)
@@ -579,5 +606,14 @@ abstract class PHPParserVersion70 extends PHPParserVersion56
         }
 
         throw $this->getUnexpectedTokenException($this->tokenizer->next());
+    }
+
+    /**
+     * use Foo\Bar\{TestA, TestB} is allowed since PHP 7.0
+     * use Foo\Bar\{TestA, TestB,} but trailing comma isn't
+     */
+    protected function allowUseGroupDeclarationTrailingComma()
+    {
+        return false;
     }
 }

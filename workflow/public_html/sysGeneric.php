@@ -483,7 +483,7 @@ if (SYS_TARGET === false) {
 
 // Bootstrap::mylog("sys_temp: ".SYS_TEMP);
 $arrayUpdating = Bootstrap::isPMUnderUpdating();
-if ($arrayUpdating['action']) {
+if (isset($arrayUpdating['action']) && $arrayUpdating['action']) {
     if ($arrayUpdating['workspace'] == "true" || $arrayUpdating['workspace'] == SYS_TEMP) {
         header("location: /update/updating.php");
         if (DEBUG_TIME_LOG) {

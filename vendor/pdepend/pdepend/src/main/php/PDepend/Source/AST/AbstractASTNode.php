@@ -118,6 +118,18 @@ abstract class AbstractASTNode implements ASTNode
     }
 
     /**
+     * Returns the source image of this ast node without the namespace prefix.
+     *
+     * @return string
+     */
+    public function getImageWithoutNamespace()
+    {
+        $imagePath = explode('\\', $this->getMetadata(4));
+
+        return array_pop($imagePath);
+    }
+
+    /**
      * Returns the start line for this ast node.
      *
      * @return integer
@@ -309,8 +321,9 @@ abstract class AbstractASTNode implements ASTNode
      * instance of the given <b>$targetType</b>. The returned value will be
      * <b>null</b> if no child exists for that.
      *
-     * @param string $targetType
-     * @return \PDepend\Source\AST\ASTNode|null
+     * @template T of \PDepend\Source\AST\ASTNode
+     * @param class-string<T> $targetType
+     * @return T|null
      */
     public function getFirstChildOfType($targetType)
     {
@@ -330,10 +343,11 @@ abstract class AbstractASTNode implements ASTNode
      * instance of the given <b>$targetType</b>. The returned value will be
      * an empty <b>array</b> if no child exists for that.
      *
-     * @param string $targetType Searched class or interface type.
-     * @param array  $results    Already found node instances. This parameter
+     * @template T of \PDepend\Source\AST\ASTNode
+     * @param class-string<T> $targetType Searched class or interface type.
+     * @param T[]             $results    Already found node instances. This parameter
      *        is only for internal usage.
-     * @return \PDepend\Source\AST\ASTNode[]
+     * @return T[]
      */
     public function findChildrenOfType($targetType, array &$results = array())
     {

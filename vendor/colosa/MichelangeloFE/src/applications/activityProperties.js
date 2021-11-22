@@ -296,17 +296,17 @@ PMDesigner.taskProperties = function (activity) {
                                 id: 'tas_not_email_from_format',
                                 name: 'tas_not_email_from_format',
                                 pmType: 'dropdown',
-                                label: 'Email From Format'.translate(),
+                                label: 'Sender Name'.translate(),
                                 controlsWidth: 300,
                                 labelWidth: "27%",
                                 options: [
                                     {
                                         id: 'assignedUser',
-                                        label: 'Assigned User'.translate(),
+                                        label: 'Previous User'.translate(),
                                         value: 0
                                     }, {
                                         id: 'emailAccountSettings',
-                                        label: 'Email Account Settings'.translate(),
+                                        label: 'Email Sender Name'.translate(),
                                         value: 1
                                     }
                                 ]
@@ -404,17 +404,17 @@ PMDesigner.taskProperties = function (activity) {
                                 id: 'tas_receive_email_from_format',
                                 name: 'tas_receive_email_from_format',
                                 pmType: 'dropdown',
-                                label: 'Email From Format'.translate(),
+                                label: 'Sender Name'.translate(),
                                 controlsWidth: 300,
                                 labelWidth: "27%",
                                 options: [
                                     {
                                         id: 'assignedUser',
-                                        label: 'Assigned User'.translate(),
+                                        label: 'Previous User'.translate(),
                                         value: 0
                                     }, {
                                         id: 'emailAccountSettings',
-                                        label: 'Email Account Settings'.translate(),
+                                        label: 'Email Sender Name'.translate(),
                                         value: 1
                                     }
                                 ]

@@ -53,6 +53,8 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  * @method \Aws\Result updateBrokerCount(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBrokerCountAsync(array $args = [])
+ * @method \Aws\Result updateBrokerType(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise updateBrokerTypeAsync(array $args = [])
  * @method \Aws\Result updateBrokerStorage(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBrokerStorageAsync(array $args = [])
  * @method \Aws\Result updateConfiguration(array $args = [])
@@ -63,5 +65,7 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise updateClusterKafkaVersionAsync(array $args = [])
  * @method \Aws\Result updateMonitoring(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateMonitoringAsync(array $args = [])
+ * @method \Aws\Result updateSecurity(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise updateSecurityAsync(array $args = [])
  */
 class KafkaClient extends AwsClient {}

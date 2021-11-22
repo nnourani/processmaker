@@ -9804,7 +9804,7 @@ function getSerializableProperties(element) {
             return false;
         }
 
-        return p.isMany ? value.length : true;
+        return p.isMany ? value ? value.length : true : true;
     });
 }
 
@@ -19178,15 +19178,15 @@ ToolbarPanel.prototype.type = "ToolbarPanel";
 
 ToolbarPanel.prototype.init = function (options) {
     var defaults = {
-        buttons: [],
+        fields: [],
         tooltip: "",
         width: "96%"
     };
     jQuery.extend(true, defaults, options);
     PMUI.core.Panel.call(this, defaults);
-    this.buttons = [];
+    this.fields = [];
     this.setTooltip(defaults.tooltip);
-    this.setButtons(defaults.buttons);
+    this.setFields(defaults.fields);
 };
 ToolbarPanel.prototype.setTooltip = function (message) {
     if (typeof message === "string") {
@@ -19195,17 +19195,18 @@ ToolbarPanel.prototype.setTooltip = function (message) {
     return this;
 };
 
-ToolbarPanel.prototype.setButtons = function (buttons) {
-    var that = this;
-    jQuery.each(buttons, function (index, button) {
-        that.buttons.push(button);
-    });
+ToolbarPanel.prototype.setFields = function (fields) {
+    this.fields = fields;
     return this;
 };
-ToolbarPanel.prototype.createHTMLButton = function (button) {
+/**
+ * Creates html structure for a button
+ * @param {*} button
+ */
+ToolbarPanel.prototype.createButtonHTML = function (button) {
     var i,
-        li = PMUI.createHTMLElement('li'),
-        a = PMUI.createHTMLElement('a');
+        li = PMUI.createHTMLElement("li"),
+        a = PMUI.createHTMLElement("a");
 
     li.id = button.selector;
     li.className = "mafe-toolbarpanel-btn";
@@ -19215,7 +19216,9 @@ ToolbarPanel.prototype.createHTMLButton = function (button) {
         content: button.tooltip,
         tooltipClass: "mafe-action-tooltip",
         position: {
-            my: "left top", at: "left bottom", collision: "flipfit"
+            my: "left top",
+            at: "left bottom",
+            collision: "flipfit"
         }
     });
 
@@ -19227,13 +19230,54 @@ ToolbarPanel.prototype.createHTMLButton = function (button) {
     return li;
 };
 
+/**
+ * Creates html structure for a switch tongle component
+ * @param {*} element
+ * @returns {String}
+ */
+ToolbarPanel.prototype.createSwitchHTML = function (element) {
+    var li = PMUI.createHTMLElement("li"),
+        input = PMUI.createHTMLElement("input"),
+        label = PMUI.createHTMLElement("label"),
+        labelDescription = PMUI.createHTMLElement("label");
+    labelDescription.innerHTML = element.text || '';
+    labelDescription.className = "tgl-label";
+    input.type = "checkbox";
+    li.className = "mafe-toolbarpanel-switch";
+    input.type = "checkbox";
+    input.id = element.selector;
+    input.className = "tgl tgl-light";
+    input.checked = element.checked || false;
+    label.htmlFor = element.selector;
+    label.className = "tgl-btn";
+    input.addEventListener( 'change', function() {
+        if (element.checkHandler) {
+            if(this.checked) {
+                element.checkHandler(true);
+            } else {
+                element.checkHandler(false);
+            }
+        }
+    });
+    li.appendChild(labelDescription);
+    li.appendChild(input);
+    li.appendChild(label);
+    return li;
+};
+
 ToolbarPanel.prototype.createHTML = function () {
-    var that = this, ul;
+    var that = this,
+        ul,
+        html;
     PMUI.core.Panel.prototype.setElementTag.call(this, "ul");
     PMUI.core.Panel.prototype.createHTML.call(this);
     this.html.style.overflow = "visible";
-    jQuery.each(this.buttons, function (i, button) {
-        var html = that.createHTMLButton(button);
+    jQuery.each(this.fields, function (i, button) {
+        if (button.type === "button") {
+            html = that.createButtonHTML(button);
+        } else if (button.type === "switch") {
+            html = that.createSwitchHTML(button);
+        }
         that.html.appendChild(html);
         button.html = html;
     });
@@ -19242,23 +19286,42 @@ ToolbarPanel.prototype.createHTML = function () {
 
 ToolbarPanel.prototype.activate = function () {
     var that = this;
-    jQuery.each(this.buttons, function (i, b) {
-        jQuery(b.html).draggable({
-            opacity: 0.7,
-            helper: "clone",
-            cursor: "hand"
-        });
+    jQuery.each(this.fields, function (i, b) {
+        if (b.type === "button") {
+            jQuery(b.html).draggable({
+                opacity: 0.7,
+                helper: "clone",
+                cursor: "hand"
+            });
+        }
+    });
+    return this;
+};
+/**
+ * Enable the actions if the toolbar button has an action and is a button
+ * @chainable
+ */
+ToolbarPanel.prototype.enableActions = function () {
+    jQuery.each(this.fields, function (i, b) {
+        if (b.type === "button") {
+            if (b.actions) {
+                new PMAction(b.actions);
+            }
+        }
+        
     });
     return this;
 };
 
 ToolbarPanel.prototype.getSelectors = function () {
-    var selectors = [], that = this;
-    jQuery.each(this.buttons, function (i, button) {
-        selectors.push('#' + button.selector);
+    var selectors = [],
+        that = this;
+    jQuery.each(this.fields, function (i, button) {
+        selectors.push("#" + button.selector);
     });
     return selectors;
 };
+
 var PMProject;
 PMProject = function (options) {
     this.diagrams = new PMUI.util.ArrayList();
@@ -37742,6 +37805,13 @@ FormDesigner.leftPad = function (string, length, fill) {
                 {value: "MB", label: "MB".translate()}
             ]
         };
+        this.maxFileNumber = {
+            label: "Max file number".translate(),
+            value: "0",
+            type: "text",
+            regExpNumber: /^\d*$/,
+            regExpString: /^[@][@%=]+[a-zA-Z\_]{1}\w+$/
+        };
         this.enableVersioning = {
             label: "versioning".translate(),
             value: false,
@@ -38117,7 +38187,7 @@ FormDesigner.leftPad = function (string, length, fill) {
         if (type === FormDesigner.main.TypesControl.multipleFile) {
             this.pf = ["type", "variable", "var_uid", "dataType", "protectedValue", "id", "name", "label", "tabIndex", "ariaLabel",
                 "inputDocument", "required", "requiredFieldErrorMessage", "dnd", "extensions", "size", "sizeUnity",
-                'enableVersioning', "mode", "multiple", "inp_doc_uid"];
+                "maxFileNumber", "enableVersioning", "mode", "multiple", "inp_doc_uid"];
             this.name.type = "hidden";
             this.label.type = "text";
             if (this.owner instanceof FormDesigner.main.GridItem) {
@@ -38957,8 +39027,11 @@ FormDesigner.leftPad = function (string, length, fill) {
                 regExp,
                 type,
                 existRegExp,
-                dateLimit,
                 messageDialog,
+                messageMaxFile = 'Invalid Configuration: the "Max File number" value should be integer.'.translate(),
+                showMessage = false,
+                dateLimit,
+                regExp,
                 validateValue;
             switch (prop) {
                 case "name":
@@ -39264,11 +39337,21 @@ FormDesigner.leftPad = function (string, length, fill) {
                     );
                     break;
                 case "tabIndex":
-                    validateValue = !isNaN(value) || value === "";
+                    regExp = /^-{0,1}\d+$/;
+                    validateValue = (!isNaN(parseInt(value)) && Number.isInteger(parseInt(value)) && regExp.test(value)) || value === "";
+                    if (this.dirty === null && !validateValue) { // First Time set tab index
+                        validateValue = true;
+                        value = "";
+                    }    
                     if (!validateValue) {
                         messageDialog = 'The value provided for the tab index property of the field "{0}" is invalid'.translate([target.properties.id.value]);
+                        dialogMessage = new FormDesigner.main.DialogInvalid(null, prop, "invalid");
                         dialogMessage.onClose = function () {
                             oldValue = target.properties[prop].oldValue;
+                            if(!(!isNaN(parseInt(oldValue)) && Number.isInteger(parseInt(oldValue)) && regExp.test(oldValue)) || oldValue === ""){
+                                oldValue = "";
+                            }
+                            
                             object = target.properties.set(prop, oldValue);
                             if (object.node) {
                                 object.node.value = oldValue;
@@ -39279,6 +39362,21 @@ FormDesigner.leftPad = function (string, length, fill) {
                         };
                     } else {
                         target.properties[prop].value = value;
+                    }
+                    break;
+                case "maxFileNumber":
+                    if (!target.properties[prop].regExpNumber.test(value)) {
+                        showMessage = (target.variable && target.variable.var_field_type === "grid") || target instanceof FormDesigner.main.GridItem? true : !target.properties[prop].regExpString.test(value);
+                    }
+                    if (showMessage || value === '') {
+                        dialogMessage = new FormDesigner.main.DialogMessage(null, "warning", messageMaxFile);
+                        dialogMessage.onClose = function () {
+                            oldValue = target.properties[prop].oldValue;
+                            object = target.properties.set(prop, oldValue);
+                            if (object.node) {
+                                object.node.value = oldValue;
+                            }
+                        };
                     }
                     break;
             }
@@ -39355,11 +39453,8 @@ FormDesigner.leftPad = function (string, length, fill) {
     };
     Designer.prototype.hide = function () {
         var a = document.body.childNodes;
-        for (var i = 0; i < a.length; i++) {
-            if (!($(a[i]).hasClass("ui-datepicker") || $(a[i]).hasClass("ui-autocomplete"))) {
-                $(a[i]).show();
-            }
-        }
+        for (var i = 0; i < a.length; i++)
+            $(a[i]).show();
         $(this.container).remove();
         this._disposeAuxForm();
         $(".loader").hide();
@@ -41300,39 +41395,52 @@ FormDesigner.leftPad = function (string, length, fill) {
                 cellValue[0].style.paddingRight = n + "px";
             }
             if (propertiesGot[property].type === "datepicker") {
-                // init jQuery datepicker
-                that.datepicker = that.dateComponentFactory(cellValue, {
-                    minDate: minDate,
-                    maxDate: maxDate,
-                    onSelect: function (dateText, inst) {
-                        properties.set(property, dateText, cellValue.find("input[type='text']")[0]);
-                    },
-                    onClose: function (dateText, inst) {
-                        $("#ui-datepicker-div").hide();
-                    },
-                    beforeShow: function () {
-                        var params = null;
-                        switch (property) {
-                            case "maxDate":
-                                params = {
-                                    minDate: that.getDateByParam(cellValue, "minDate")
-                                }
-                                break;
-                            case "minDate":
-                                params = {
-                                    maxDate: that.getDateByParam(cellValue, "maxDate")
-                                }
-                                break;
-                            case "defaultDate":
-                                params = {
-                                    maxDate: that.getDateByParam(cellValue, "maxDate"),
-                                    minDate: that.getDateByParam(cellValue, "minDate")
-                                }
-                                break;
-                        }
-                        return params;
+                button = $("<img src='" + $.imgUrl + "fd-calendar.png' style='cursor:pointer;position:absolute;top:0;right:" + n + "px;' title='" + "datepicker".translate() + "'>");
+                button.on("click", function (e) {
+                    e.stopPropagation();
+                    if ($(e.target).data("disabled") === true) {
+                        return;
                     }
+                    if ($(e.target).data("disabledTodayOption") === true) {
+                        return;
+                    }
+                    // init jQyery datepicker
+                    that.datepicker = that.dateComponentFactory(cellValue, {
+                        minDate: minDate,
+                        maxDate: maxDate,
+                        onSelect: function (dateText, inst) {
+                            properties.set(property, dateText, cellValue.find("input[type='text']")[0]);
+                        },
+                        onClose: function (dateText, inst) {
+                            that.datepicker.datepicker("destroy");
+                            $("#ui-datepicker-div").remove();
+                        },
+                        beforeShow: function () {
+                            var params = null;
+                            switch (property) {
+                                case "maxDate":
+                                    params = {
+                                        minDate: that.getDateByParam(cellValue, "minDate")
+                                    }
+                                    break;
+                                case "minDate":
+                                    params = {
+                                        maxDate: that.getDateByParam(cellValue, "maxDate")
+                                    }
+                                    break;
+                                case "defaultDate":
+                                    params = {
+                                        maxDate: that.getDateByParam(cellValue, "maxDate"),
+                                        minDate: that.getDateByParam(cellValue, "minDate")
+                                    }
+                                    break;
+                            }
+                            return params;
+                        }
+                    });
+                    cellValue.find(".ui-datepicker-trigger").hide();
                 });
+                cellValue.append(button);
                 n = n + 16;
                 cellValue[0].style.paddingRight = n + "px";
                 // init jQuery autocomplete
@@ -41403,6 +41511,7 @@ FormDesigner.leftPad = function (string, length, fill) {
                     return;
                 }
                 cellValue.find("input[type='text']").datepicker('hide');
+                $("#ui-datepicker-div").remove();
                 if (cachekey in that.cache) {
                     response(that.cache[cachekey]);
                     return;
@@ -41479,6 +41588,7 @@ FormDesigner.leftPad = function (string, length, fill) {
                 onClose: defaults.onClose,
                 beforeShow: defaults.beforeShow
             }).next(".ui-datepicker-trigger").addClass("datetime-gadget-class");
+        datePicker.datepicker("show");
         return datePicker;
     };
     /**

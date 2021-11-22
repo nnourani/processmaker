@@ -11,6 +11,7 @@ use G;
 use ProcessMaker\BusinessModel\Process as BusinessModelProcess;
 use ProcessMaker\BusinessModel\Validator as BusinessModelValidator;
 use ProcessMaker\Core\System;
+use ProcessMaker\Model\Step as StepModel;
 use ProcessMaker\Project\Workflow;
 use ProcessMaker\Util\Common;
 use ProcessPeer;
@@ -554,20 +555,22 @@ class WebEntryEvent
 
                 if (!isset($arrayData['WE_TYPE']) || $arrayData['WE_TYPE'] === 'SINGLE') {
                     //Task - Step
+                    $stepModel = StepModel::getByProcessTaskAndStepType($projectUid, $this->webEntryEventWebEntryTaskUid, 'DYNAFORM', $dynaFormUid);
                     $step = new Step();
-
-                    $stepUid = $step->create(array(
-                        "PRO_UID" => $projectUid,
-                        "TAS_UID" => $this->webEntryEventWebEntryTaskUid
-                    ));
-                    if (!empty($dynaFormUid)) {
-                        $result = $step->update(array(
-                            "STEP_UID" => $stepUid,
-                            "STEP_TYPE_OBJ" => "DYNAFORM",
-                            "STEP_UID_OBJ" => $dynaFormUid,
-                            "STEP_POSITION" => 1,
-                            "STEP_MODE" => "EDIT"
+                    if (empty($stepModel)) {
+                        $stepUid = $step->create(array(
+                            "PRO_UID" => $projectUid,
+                            "TAS_UID" => $this->webEntryEventWebEntryTaskUid
                         ));
+                        if (!empty($dynaFormUid)) {
+                            $result = $step->update(array(
+                                "STEP_UID" => $stepUid,
+                                "STEP_TYPE_OBJ" => "DYNAFORM",
+                                "STEP_UID_OBJ" => $dynaFormUid,
+                                "STEP_POSITION" => 1,
+                                "STEP_MODE" => "EDIT"
+                            ));
+                        }
                     }
                 }
 

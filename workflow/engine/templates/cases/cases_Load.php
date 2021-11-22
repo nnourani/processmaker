@@ -14,9 +14,13 @@ $filter = new InputFilter();
    }
   </style>
   <body onresize="autoResizeScreen()" onload="autoResizeScreen()">
+<?php
+?>
   <iframe name="casesFrame" id="casesFrame" src ="<?php echo $cd; ?>../cases/main_init<?php echo $filter->xssFilterHard($_POST['qs']); ?>" width="99%" height="768" frameborder="0">
       <p>Your browser does not support iframes.</p>
   </iframe>
+<?php
+?>
   </body>
   <script>
     if ( document.getElementById('pm_submenu') )

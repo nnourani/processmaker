@@ -18,3 +18,4 @@ $factory->define(\ProcessMaker\Model\BpmnProcess::class, function(Faker $faker) 
         'PRO_IS_SUBPROCESS' => 0,
     ];
 });
+

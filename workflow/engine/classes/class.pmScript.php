@@ -270,19 +270,19 @@ class PMScript
     {
         switch ($stepType) {
             case 'DYNAFORM':
-                $executedOn = $triggerType === 'BEFORE' ? self::BEFORE_DYNAFORM : $triggerType === 'AFTER' ?
+                $executedOn = ($triggerType === 'BEFORE' ? self::BEFORE_DYNAFORM : $triggerType === 'AFTER') ?
                     self::AFTER_DYNAFORM : self::UNDEFINED_ORIGIN;
                 break;
             case 'INPUT_DOCUMENT':
-                $executedOn = $triggerType === 'BEFORE' ? self::BEFORE_INPUT_DOCUMENT : $triggerType === 'AFTER' ?
+                $executedOn = ($triggerType === 'BEFORE' ? self::BEFORE_INPUT_DOCUMENT : $triggerType === 'AFTER') ?
                     self::AFTER_INPUT_DOCUMENT : self::UNDEFINED_ORIGIN;
                 break;
             case 'OUTPUT_DOCUMENT':
-                $executedOn = $triggerType === 'BEFORE' ? self::BEFORE_OUTPUT_DOCUMENT : $triggerType === 'AFTER' ?
+                $executedOn = ($triggerType === 'BEFORE' ? self::BEFORE_OUTPUT_DOCUMENT : $triggerType === 'AFTER') ?
                     self::AFTER_OUTPUT_DOCUMENT : self::UNDEFINED_ORIGIN;
                 break;
             case 'EXTERNAL':
-                $executedOn = $triggerType === 'BEFORE' ? self::BEFORE_EXTERNAL_STEP : $triggerType === 'AFTER' ?
+                $executedOn = ($triggerType === 'BEFORE' ? self::BEFORE_EXTERNAL_STEP : $triggerType === 'AFTER') ?
                     self::AFTER_EXTERNAL_STEP : self::UNDEFINED_ORIGIN;
                 break;
             case 'ASSIGN_TASK':
@@ -301,6 +301,9 @@ class PMScript
                 break;
             case 'SCRIPT_TASK':
                 $executedOn = self::SCRIPT_TASK;
+                break;
+            case 'SELF_SERVICE_TIMEOUT':
+                $executedOn = self::SELF_SERVICE_TIMEOUT;
                 break;
             default:
                 $executedOn = self::UNDEFINED_ORIGIN;
@@ -646,14 +649,15 @@ class PMScript
     Public function evaluateVariable()
     {
         $process = new Process();
-        if (!$process->isBpmnProcess($_SESSION['PROCESS'])) {
+        $proUid = isset($_SESSION['PROCESS']) ? $_SESSION['PROCESS'] : null;
+        if (!$process->isBpmnProcess($proUid)) {
             return;
         }
         require_once PATH_CORE . 'controllers/pmTablesProxy.php';
         $pmTablesProxy = new pmTablesProxy();
         $variableModule = new ProcessMaker\BusinessModel\Variable();
         $searchTypes = array('checkgroup', 'dropdown', 'suggest');
-        $processVariables = $pmTablesProxy->getDynaformVariables($_SESSION['PROCESS'], $searchTypes, false);
+        $processVariables = $pmTablesProxy->getDynaformVariables($proUid, $searchTypes, false);
         $variables = $this->affected_fields;
         $variables = (is_array($variables)) ? array_unique($variables) : $variables;
         $newFields = [];
@@ -675,7 +679,7 @@ class PMScript
                                     }
                                 }
                                 if (sizeof($arrayLabels)) {
-                                    $varInfo = $variableModule->getVariableTypeByName($_SESSION['PROCESS'], $var);
+                                    $varInfo = $variableModule->getVariableTypeByName($proUid, $var);
                                     if (is_array($varInfo) && sizeof($varInfo)) {
                                         $varType = $varInfo['VAR_FIELD_TYPE'];
                                         switch ($varType) {
@@ -699,7 +703,7 @@ class PMScript
                             }
                         }
                         if (isset($this->aFields[$var]) && is_string($this->aFields[$var])) {
-                            $varInfo = $variableModule->getVariableTypeByName($_SESSION['PROCESS'], $var);
+                            $varInfo = $variableModule->getVariableTypeByName($proUid, $var);
                             $options = G::json_decode($varInfo["VAR_ACCEPTED_VALUES"]);
                             $no = count($options);
                             for ($io = 0; $io < $no; $io++) {

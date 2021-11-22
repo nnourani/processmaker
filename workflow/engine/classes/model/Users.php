@@ -195,6 +195,9 @@ class Users extends BaseUsers
                 $role = $roles->loadByCode($aFields['USR_ROLE']);
                 $aFields['USR_ROLE_NAME'] = $role['ROL_NAME'];
 
+                if (empty($aFields['USR_DEFAULT_LANG'])) {
+                    $aFields['USR_DEFAULT_LANG'] = 'en';
+                }
                 $translations = new Language();
                 $translation  = $translations->loadByCode($aFields['USR_DEFAULT_LANG']);
                 $aFields['USR_DEFAULT_LANG_NAME'] = $translation['LANGUAGE_NAME'];

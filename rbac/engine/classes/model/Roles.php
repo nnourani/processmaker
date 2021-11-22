@@ -118,8 +118,8 @@ class Roles extends BaseRoles
             $criteria->add(RolesPeer::ROL_UID, '', Criteria::NOT_EQUAL);
             $criteria->add(RolesPeer::ROL_CODE, RBAC::PROCESSMAKER_GUEST, Criteria::NOT_EQUAL);
             $criteria->add(SystemsPeer::SYS_CODE, $systemCode);
-            $criteria->add(RolesPeer::ROL_CREATE_DATE, '', Criteria::NOT_EQUAL);
-            $criteria->add(RolesPeer::ROL_UPDATE_DATE, '', Criteria::NOT_EQUAL);
+            $criteria->add(RolesPeer::ROL_CREATE_DATE, '0000-00-00 00:00:00', Criteria::NOT_EQUAL);
+            $criteria->add(RolesPeer::ROL_UPDATE_DATE, '0000-00-00 00:00:00', Criteria::NOT_EQUAL);
 
             if (!empty($filter)) {
                 $criteria->add(RolesPeer::ROL_CODE, '%' . $filter . '%', Criteria::LIKE);

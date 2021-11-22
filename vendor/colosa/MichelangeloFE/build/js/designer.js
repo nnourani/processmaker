@@ -294,6 +294,7 @@ PMDesigner.remoteUrl = "";
 PMDesigner.moddle = new BpmnModdle();
 PMDesigner.bpmnFactory = new BpmnFactory(PMDesigner.moddle);
 PMDesigner.keyCodeF5 = 116;
+PMDesigner.autoSave = true;
 PMDesigner.shapeProperties = function (shape) {
     var typeShape = shape.type;
     switch (typeShape) {
@@ -670,6 +671,7 @@ jQuery(document).ready(function ($) {
     PMDesigner.connectValidator = new ConnectValidator();
     for (d = 0; d < PMDesigner.sidebar.length; d += 1) {
         PMDesigner.sidebar[d].activate();
+        PMDesigner.sidebar[d].enableActions();
     }
 
     $('.bpmn_shapes_legend').hide();
@@ -984,7 +986,7 @@ jQuery(document).ready(function ($) {
      ==============================================*/
     PMDesigner.project.setSaveInterval(40000);
     setInterval(function () {
-        if (PMDesigner.project.isDirty() && PMDesigner.project.readOnly === false) {
+        if (PMDesigner.autoSave && PMDesigner.project.isDirty() && PMDesigner.project.readOnly === false) {
             PMDesigner.project.remoteProxy.setUrl(HTTP_SERVER_HOSTNAME + "/api/1.0/" + WORKSPACE + "/project/" + prj_uid);
             PMDesigner.msgFlash('Saving Process'.translate(), document.body, 'success', 5000, 5);
             PMDesigner.project.save(true);
@@ -1391,7 +1393,7 @@ PMDesigner.msgFlash = function (text, container, severity, duration, zorder) {
     msg.setAppendTo(container || document.body);
     msg.setSeverity(severity || "success");
     msg.setDuration(duration || 3000);
-    msg.setZOrder(zorder || 100);
+    msg.setZOrder(zorder || 200);
     msg.show();
     PMDesigner.currentMsgFlash = msg;
 };
@@ -1478,7 +1480,12 @@ PMDesigner.modeReadOnly = function () {
 PMDesigner.reloadDataTable = function () {
     $('.bpmn_validator').css('visibility', 'visible');
 };
-
+/**
+ * Disable the autosave feature
+ */
+PMDesigner.autoSaveValue = function (value) {
+    PMDesigner.autoSave = value;
+};
 /**
  * Escape XML characters method.
  * There are only five:
@@ -5053,9 +5060,10 @@ PMDesigner.sidebar = [];
 
 PMDesigner.sidebar.push(
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'TASK',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-task'
@@ -5064,6 +5072,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'SUB_PROCESS',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-subprocess'
@@ -5073,9 +5082,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'EXCLUSIVE',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-gateway-exclusive'
@@ -5084,6 +5094,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'PARALLEL',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-gateway-parallel'
@@ -5092,6 +5103,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'INCLUSIVE',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-gateway-inclusive'
@@ -5101,9 +5113,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'START',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-start'
@@ -5112,6 +5125,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'START_TIMER',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-event-start-timer'
@@ -5120,6 +5134,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'INTERMEDIATE_EMAIL',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-intermediate-send-mesage'
@@ -5128,6 +5143,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'INTERMEDIATE_TIMER',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-event-intermediate-timer'
@@ -5136,6 +5152,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'END',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-end'
@@ -5144,6 +5161,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'END_EMAIL',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-end-message'
@@ -5153,9 +5171,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'DATAOBJECT',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-data-object'
@@ -5164,6 +5183,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'DATASTORE',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-data-store'
@@ -5173,9 +5193,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'PARTICIPANT',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-blackbox'
@@ -5184,6 +5205,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'POOL',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-pool'
@@ -5192,6 +5214,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'LANE',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-lane'
@@ -5201,9 +5224,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'GROUP',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-group'
@@ -5212,6 +5236,7 @@ PMDesigner.sidebar.push(
             },
             {
                 selector: 'TEXT_ANNOTATION',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-annotation'
@@ -5221,9 +5246,10 @@ PMDesigner.sidebar.push(
         ]
     }),
     new ToolbarPanel({
-        buttons: [
+        fields: [
             {
                 selector: 'LASSO',
+                type: 'button',
                 className: [
                     'mafe-designer-icon',
                     'mafe-toolbar-lasso'
@@ -5232,6 +5258,23 @@ PMDesigner.sidebar.push(
             }
 
         ]
+    }),
+    new ToolbarPanel({
+        fields: [
+            {
+                selector: 'enableAutosave',
+                type: 'switch',
+                className: [
+                    'mafe-toolbar-autosave'
+                ],
+                tooltip: "Validate Now".translate(),
+                checked: true,
+                text: "Auto Save".translate(),
+                checkHandler: function (value) {
+                    PMDesigner.autoSaveValue(value);
+                }
+            }
+        ]  
     })
 );
 ListDynaform = function () {
@@ -14497,7 +14540,7 @@ stepsTask.prototype.notItemConfig = function () {
                         data = response[0].response;
                         cboTargetTask.clearOptions();
                         cboOriginTask.clearOptions();
-                        cboTargetTask.addOption({value: '', label: 'All Tasks'.translate()});
+                        cboTargetTask.addOption({value: '', label: 'Select an option'.translate()});
                         cboOriginTask.addOption({value: '', label: 'All Tasks'.translate()});
                         for (i = 0; i <= data.diagrams[0].activities.length - 1; i += 1) {
                             cboTargetTask.addOption({
@@ -14777,7 +14820,7 @@ stepsTask.prototype.notItemConfig = function () {
                     typeRequest: "get",
                     functionSuccess: function (xhr, response) {
                         var data = response, i;
-                        cboTargetTask.addOption({value: "", label: "All Tasks".translate()});
+                        cboTargetTask.addOption({value: "", label: "Select one option".translate()});
                         cboOriginTask.addOption({value: "", label: "All Tasks".translate()});
                         for (i = 0; i <= data.diagrams[0].activities.length - 1; i += 1) {
                             cboTargetTask.addOption({
@@ -17097,17 +17140,17 @@ PMDesigner.taskProperties = function (activity) {
                                 id: 'tas_not_email_from_format',
                                 name: 'tas_not_email_from_format',
                                 pmType: 'dropdown',
-                                label: 'Email From Format'.translate(),
+                                label: 'Sender Name'.translate(),
                                 controlsWidth: 300,
                                 labelWidth: "27%",
                                 options: [
                                     {
                                         id: 'assignedUser',
-                                        label: 'Assigned User'.translate(),
+                                        label: 'Previous User'.translate(),
                                         value: 0
                                     }, {
                                         id: 'emailAccountSettings',
-                                        label: 'Email Account Settings'.translate(),
+                                        label: 'Email Sender Name'.translate(),
                                         value: 1
                                     }
                                 ]
@@ -17205,17 +17248,17 @@ PMDesigner.taskProperties = function (activity) {
                                 id: 'tas_receive_email_from_format',
                                 name: 'tas_receive_email_from_format',
                                 pmType: 'dropdown',
-                                label: 'Email From Format'.translate(),
+                                label: 'Sender Name'.translate(),
                                 controlsWidth: 300,
                                 labelWidth: "27%",
                                 options: [
                                     {
                                         id: 'assignedUser',
-                                        label: 'Assigned User'.translate(),
+                                        label: 'Previous User'.translate(),
                                         value: 0
                                     }, {
                                         id: 'emailAccountSettings',
-                                        label: 'Email Account Settings'.translate(),
+                                        label: 'Email Sender Name'.translate(),
                                         value: 1
                                     }
                                 ]
@@ -28446,7 +28489,7 @@ WebEntry.prototype = {
         this.getWebEntryConfiguration(
             function (webEntryEvent, isNew) {
                 if (isNew) {
-                    webEntryEvent.we_type = 'SINGLE';
+                    webEntryEvent.we_type = 'MULTIPLE';
                     webEntryEvent.we_authentication = 'ANONYMOUS';
                     webEntryEvent.wee_url = '';
                     webEntryEvent.wee_title = '';
@@ -28661,50 +28704,6 @@ WebEntry.prototype = {
             visibleHeader: false,
             items: [
                 {
-                    id: 'singleDynaformRadio',
-                    pmType: 'radio',
-                    labelVisible: false,
-                    value: 'SINGLE',
-                    name: 'options',
-                    required: false,
-                    controlPositioning: 'horizontal',
-                    maxDirectionOptions: 4,
-                    options: [
-                        {
-                            id: 'singleDynaform',
-                            label: 'Single Dynaform'.translate(),
-                            value: 'SINGLE',
-                            selected: true
-                        }
-                    ],
-                    onChange: function (newVal, oldVal) {
-                        that.weeFormModeChange(newVal, oldVal);
-                    },
-                    labelWidth: '0%'
-                },
-                {
-                    id: 'weeSelectDynaform',
-                    name: 'tabFormsDropdownDyanform',
-                    pmType: 'dropdown',
-                    label: 'Dynaform'.translate(),
-                    helper: 'Select Dynaform use in case.'.translate(),
-                    required: true,
-                    controlsWidth: 400,
-                    labelWidth: '25%',
-                    style: {
-                        cssProperties: {
-                            'padding-left': '100px'
-                        }
-                    },
-                    options: [
-                        {
-                            label: 'Select Dynaform'.translate(),
-                            value: ''
-                        }
-                    ]
-
-                },
-                {
                     id: 'multipleStepsRadio',
                     pmType: 'radio',
                     labelVisible: false,
@@ -28720,11 +28719,8 @@ WebEntry.prototype = {
                             value: 'MULTIPLE'
                         }
                     ],
-                    onChange: function (newVal, oldVal) {
-                        that.weeFormModeChange(newVal, oldVal);
-                    },
-                    labelWidth: '0%'
-
+                    labelWidth: '0%',
+                    visible: false
                 }
             ]
         });
@@ -29564,23 +29560,6 @@ WebEntry.prototype = {
     },
 
     /**
-     * Disable MultipleSteps or Single Dynaform (tabForms)
-     * @returns {disableMultipleSteps}
-     */
-    weeFormModeChange: function (newVal, oldVal) {
-        if (newVal === 'SINGLE') {
-            this.disableMultipleSteps('SINGLE');
-        } else {
-            this.disableSingleDynaform('MULTIPLE');
-            this.getTabForms().getItem('singleDynaform').getItem('weeSelectDynaform').hideMessage();
-            this.getTabForms().getItem('singleDynaform').getItem('weeSelectDynaform')
-                .getControl(0).style.removeClasses(['error']);
-        }
-        this.setLinkText(this.getTabLinkForm(), '');
-        return this;
-    },
-
-    /**
      * Disable MultipleSteps (tabForms)
      * @param singleMultiple
      * @returns {WebEntry}
@@ -29588,10 +29567,6 @@ WebEntry.prototype = {
     disableMultipleSteps: function (singleMultiple) {
         var singleDyna = this.getTabForms().getItem('singleDynaform');
         singleDyna.getItem('multipleStepsRadio').setValue('');
-        singleDyna.getItem('weeSelectDynaform').enable();
-        singleDyna.getItem('weeSelectDynaform').setRequired(true);
-        singleDyna.getItem('singleDynaformRadio').setValue(singleMultiple);
-        singleDyna.getItem('singleDynaformRadio').getControl(0).select();
         //Hide step panel
         this.getLabelsPanel().setVisible(false);
         this.getTabForms().getItem('stepsMainContainer').setVisible(false);
@@ -29605,9 +29580,6 @@ WebEntry.prototype = {
      */
     disableSingleDynaform: function (singleMultiple) {
         var singleDyna = this.getTabForms().getItem('singleDynaform');
-        singleDyna.getItem('singleDynaformRadio').setValue('');
-        singleDyna.getItem('weeSelectDynaform').disable();
-        singleDyna.getItem('weeSelectDynaform').setRequired(false);
         singleDyna.getItem('multipleStepsRadio').setValue(singleMultiple);
         singleDyna.getItem('multipleStepsRadio').getControl(0).select();
         //Show step panel
@@ -29808,9 +29780,8 @@ WebEntry.prototype = {
         data['act_uid'] = this.getActUid();
         data['evn_uid'] = this.getEvnUid();
         data['wee_title'] = this.getEvnUid();
-        data['we_type'] = (dataTabSingleDyn.getItem('singleDynaformRadio').getValue()) ? 'SINGLE' : 'MULTIPLE';
-        data['dyn_uid'] = (data['we_type'] === 'SINGLE') ? dataTabSingleDyn.getItem('weeSelectDynaform')
-            .getValue() : '';
+        data['we_type'] = 'MULTIPLE';
+        data['dyn_uid'] = '';
         data['we_custom_title'] = dataTabProperties.getItem('tabPropertiesWebEntryTitle').getValue();
         data['we_authentication'] = dataTabProperties.getItem('tabPropRadioAuthentication').getValue() === '[]' ?
             'LOGIN_REQUIRED' : 'ANONYMOUS';
@@ -29850,15 +29821,12 @@ WebEntry.prototype = {
             i,
             data,
             options = [],
-            dynaformsControl,
             dynaforms = [];
 
         //execute Rest (get Dynaforms)
         this.getDynaforms(
             function (xhr, response) {
                 dynaforms = response[0].response;
-                //get Controls tab-Forms
-                dynaformsControl = that.getTabForms().getItem('singleDynaform').getItem('weeSelectDynaform');
 
                 //Set data Dropdown Single Dynaform
                 for (i = 0; i < dynaforms.length; i += 1) {
@@ -29871,7 +29839,6 @@ WebEntry.prototype = {
                     }
                     options.push(data);
                 }
-                dynaformsControl.setOptions(options);
 
                 //set Disable/Enable single or multiple steps
                 (that.getConfigWebEntry().we_type === 'SINGLE') ?
@@ -32406,6 +32373,16 @@ var MessageEventDefinition = function (bpmnEvent) {
         }
     };
 
+    this.txtCaseTitle = new CriteriaField({
+        id: "txtCaseTitle",
+        name: "txtCaseTitle",
+        valueType: "string",
+        label: "Case Title".translate(),
+        maxLength: 200,
+        value: "",
+        controlsWidth: 380
+    });
+
     this.txtCorrelationValue = new CriteriaField({
         id: "txtCorrelationValue",
         name: "txtCorrelationValue",
@@ -32452,6 +32429,7 @@ var MessageEventDefinition = function (bpmnEvent) {
         width: DEFAULT_WINDOW_WIDTH - 70,
         visibleHeader: false,
         items: [
+            that.txtCaseTitle,
             that.cboMessageType,
             that.txtCorrelationValue,
             {
@@ -32644,6 +32622,7 @@ MessageEventDefinition.prototype.createWindow = function () {
                         msged_correlation: correlationValueAux.txtCorrelationValue
                     };
 
+                    data.case_title = that.txtCaseTitle.value;
                     switch (that.messageEventDefinitionOption) {
                         case "POST":
                             that.messageEventDefintionPostRestProxy(data);
@@ -32746,6 +32725,7 @@ MessageEventDefinition.prototype.load = function () {
 
                 that.gridCurrent.setDataItems(that.getVariablesByObject(arrayMessageEventDefinitionData.msged_variables));
                 that.frmMessageEventDefinition1.getField("txtCorrelationValue").setValue(arrayMessageEventDefinitionData.msged_correlation);
+                that.frmMessageEventDefinition1.getField("txtCaseTitle").setValue(arrayMessageEventDefinitionData.tas_def_title);
             }
         },
         functionFailure: function (xhr, response) {
@@ -33607,11 +33587,6 @@ IntroHelper.prototype.startIntro = function () {
                                 tmrevn_option: "ONE-DATE-TIME",
                                 tmrevn_next_run_date: $("#oneDateTime").find("input:eq(0)").val()
                             };
-                            for (var i in ENABLED_FEATURES) {
-                                if (ENABLED_FEATURES[i] == 'oq3S29xemxEZXJpZEIzN01qenJUaStSekY4cTdJVm5vbWtVM0d4S2lJSS9qUT0=') {
-                                    dataTimer.tmrevn_next_run_date = convertDatetimeToIso8601(dataTimer.tmrevn_next_run_date);
-                                }
-                            }
                             break;
                         case "5": /*every*/
                             dataTimer = {
@@ -33649,6 +33624,7 @@ IntroHelper.prototype.startIntro = function () {
                             };
                             break;
                     }
+                    dataTimer.caseTitle = formData.txtCaseTitle;
                     if (formTimerEvent.getField("tmrevn_uid").getValue() == "") {
                         restClientNewTimerEvent(dataTimer);
                     } else {
@@ -33730,12 +33706,14 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setVisible(false);
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            }
         };
 
         showDailyItems = function () {
@@ -33751,12 +33729,14 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setVisible(false);
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            }
         };
 
         showMonthlyItems = function () {
@@ -33771,12 +33751,14 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setVisible(true);
             formTimerEvent.getField('monthsGroup').setRequired(true);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            }
         };
 
         showOneDateTimeItems = function () {
@@ -33791,12 +33773,14 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setVisible(false);
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(false);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(false);
+            }
         };
 
         showEveryItems = function () {
@@ -33811,12 +33795,14 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setVisible(false);
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('dayType').setRequired(false);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('hourType').setRequired(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
+                formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setRequired(true);
+            }
         };
         /*intermediate*/
         showWaitForItems = function () {
@@ -33830,9 +33816,11 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(false);
             formTimerEvent.getField('dateTimeVariablePicker').setRequired(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(true);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[1].items.get(4).getField('dayType').setVisible(true);
+                formTimerEvent.getItems()[1].items.get(4).getField('hourType').setVisible(true);
+                formTimerEvent.getItems()[1].items.get(4).getField('minuteType').setVisible(true);
+            }
         };
 
         showWaitUntilItems = function () {
@@ -33846,10 +33834,22 @@ IntroHelper.prototype.startIntro = function () {
             formTimerEvent.getField('monthsGroup').setRequired(false);
             formTimerEvent.getField('dateTimeVariablePicker').setVisible(true);
             formTimerEvent.getField('dateTimeVariablePicker').setRequired(true);
-            formTimerEvent.getItems()[0].items.get(4).getField('dayType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('hourType').setVisible(false);
-            formTimerEvent.getItems()[0].items.get(4).getField('minuteType').setVisible(false);
+            if (formTimerEvent.getItems()[0].items !== undefined) {
+                formTimerEvent.getItems()[1].items.get(4).getField('dayType').setVisible(false);
+                formTimerEvent.getItems()[1].items.get(4).getField('hourType').setVisible(false);
+                formTimerEvent.getItems()[1].items.get(4).getField('minuteType').setVisible(false);
+            }
         };
+
+        this.txtCaseTitle = new CriteriaField({
+            id: "txtCaseTitle",
+            name: "txtCaseTitle",
+            valueType: "string",
+            label: "Case Title".translate(),
+            maxLength: 200,
+            value: "",
+            controlsWidth: 500
+        });
 
         radioGroup = new PMUI.field.RadioButtonGroupField({
             id: 'radioGroup',
@@ -34106,6 +34106,7 @@ IntroHelper.prototype.startIntro = function () {
             name: "formTimerEvent",
             title: '',
             items: [
+                this.txtCaseTitle,
                 {
                     id: "panelDetailsCustom",
                     pmType: "panel",
@@ -34248,7 +34249,11 @@ IntroHelper.prototype.startIntro = function () {
                 typeRequest: 'get',
                 functionSuccess: function (xhr, response) {
                     if (typeof response === "object" && JSON.stringify(response).length > 2) {
-                        var opt = response.tmrevn_option.toUpperCase();
+                        var opt = "";
+                        if (typeof response.tmrevn_option !== 'undefined') {
+                            opt = response.tmrevn_option.toUpperCase();
+                        }
+                        formTimerEvent.getField("txtCaseTitle").setValue(response.tas_def_title);
                         switch (opt) {
                             case "HOURLY":
                                 $("#radioGroup").find("input:eq(0)").trigger("click");

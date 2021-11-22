@@ -29,6 +29,18 @@ switch ($actionAjax) {
         while ($dataSet->next()) {
             $result = $dataSet->getRow();
             $result['ID_HISTORY'] = $result['PRO_UID'] . '_' . $result['APP_UID'] . '_' . $result['TAS_UID'];
+            // Apply mask
+            $dateInitLabel = applyMaskDateEnvironment($result['DEL_INIT_DATE'],'', false);
+            $dateDelLabel = applyMaskDateEnvironment($result['DEL_DELEGATE_DATE'],'', false);
+            $dateEndLabel = '-';
+            // @todo the query for get this '-' needs an update
+            if ($result['DEL_FINISH_DATE'] != "-") {
+                $dateEndLabel = applyMaskDateEnvironment($result['DEL_FINISH_DATE'],'', false);
+            }
+            // Apply the timezone
+            $result['DEL_INIT_DATE_LABEL'] = DateTime::convertUtcToTimeZone($dateInitLabel);
+            $result['DEL_DELEGATE_DATE_LABEL'] = DateTime::convertUtcToTimeZone($dateDelLabel);
+            $result['DEL_FINISH_DATE_LABEL'] = DateTime::convertUtcToTimeZone($dateEndLabel);
             $process[] = $result;
         }
 

@@ -57,13 +57,14 @@ class ASTClassReference extends ASTClassOrInterfaceReference
     /**
      * Returns the concrete type instance associated with with this placeholder.
      *
-     * @return \PDepend\Source\AST\AbstractASTClassOrInterface
+     * @return \PDepend\Source\AST\ASTClass
      */
     public function getType()
     {
         if ($this->typeInstance === null) {
             $this->typeInstance = $this->context->getClass($this->getImage());
         }
+
         return $this->typeInstance;
     }
 

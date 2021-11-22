@@ -3,9 +3,11 @@
 use App\Jobs\EmailEvent;
 use Illuminate\Support\Facades\Crypt;
 use ProcessMaker\BusinessModel\Cases as BmCases;
+use ProcessMaker\BusinessModel\Cases\Unassigned;
 use ProcessMaker\BusinessModel\EmailServer;
 use ProcessMaker\Core\JobsManager;
 use ProcessMaker\Core\System;
+use ProcessMaker\Model\Application;
 use ProcessMaker\Model\Delegation;
 
 class WsBase
@@ -538,41 +540,33 @@ class WsBase
     /**
      * Get unassigned case list
      *
-     * @param string $userId
+     * @param string $userUid
      *
      * @return $result will return an object
      */
-    public function unassignedCaseList($userId)
+    public function unassignedCaseList($userUid)
     {
         try {
             $result = [];
-            $oAppCache = new AppCacheView();
-            $Criteria = $oAppCache->getUnassignedListCriteria($userId);
-            $oDataset = AppCacheViewPeer::doSelectRS($Criteria);
-            $oDataset->setFetchmode(ResultSet::FETCHMODE_ASSOC);
-            $oDataset->next();
-
-            while ($aRow = $oDataset->getRow()) {
-                $result[] = array(
-                    'guid' => $aRow['APP_UID'],
-                    'name' => $aRow['APP_NUMBER'],
-                    'delIndex' => $aRow['DEL_INDEX'],
-                    'processId' => $aRow['PRO_UID']
-                );
-
-                $oDataset->next();
+            $unassigned = new Unassigned();
+            $unassigned->setUserUid($userUid);
+            $data = $unassigned->getData();
+            foreach ($data as $var) {
+                array_push($result, [
+                    'guid' => $var['APP_UID'],
+                    'name' => $var['APP_NUMBER'],
+                    'delIndex' => $var['DEL_INDEX'],
+                    'processId' => $var['PRO_UID']
+                ]);
             }
-
             return $result;
         } catch (Exception $e) {
-            $result[] = array(
+            $result[] = [
                 'guid' => $e->getMessage(),
                 'name' => $e->getMessage(),
                 'status' => $e->getMessage(),
-                'status' => $e->getMessage(),
                 'processId' => $e->getMessage()
-            );
-
+            ];
             return $result;
         }
     }
@@ -3228,29 +3222,36 @@ class WsBase
             $_SESSION["INDEX"] = $delIndex;
             $_SESSION["USER_LOGGED"] = $userUid;
 
+            // Validate the appUid
             if (empty($caseUid)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " caseUid");
-
                 $g->sessionVarRestore();
 
                 return $result;
             }
+            // Validate the status
+            $caseInfo = Application::getCase($caseUid);
+            if ($caseInfo['APP_STATUS'] === Application::STATUS_DRAFT_NAME) {
+                $result = new WsResponse(100, G::LoadTranslation("ID_DRAFT_CASES_CAN_NOT_PAUSED"));
+                $g->sessionVarRestore();
 
+                return $result;
+            }
+            // Validate the index
             if (empty($delIndex)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " delIndex");
-
                 $g->sessionVarRestore();
 
                 return $result;
             }
+            // Validate the user
             if (empty($userUid)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " userUid");
-
                 $g->sessionVarRestore();
 
                 return $result;
             }
-            //Validate if status is closed
+            // Validate if status is closed
             $appDelegation = new AppDelegation();
             $rows = $appDelegation->LoadParallel($caseUid, $delIndex);
             if (empty($rows)) {
@@ -3258,7 +3259,7 @@ class WsBase
                 $g->sessionVarRestore();
                 return $result;
             }
-            //Validate if the case is paused
+            // Validate if the case is paused
             $appDelay = new AppDelay();
             $sw = $appDelay->isPaused($caseUid, $delIndex);
             if ($sw === true) {
@@ -3266,6 +3267,7 @@ class WsBase
                 $g->sessionVarRestore();
                 return $result;
             }
+            // Review the unpaused date
             if (strlen($unpauseDate) >= 10) {
                 if (!preg_match("/^\d{4}-\d{2}-\d{2}| \d{2}:\d{2}:\d{2}$/", $unpauseDate)) {
                     $result = new WsResponse(100, G::LoadTranslation("ID_INVALID_DATA") . " $unpauseDate");
@@ -3280,7 +3282,7 @@ class WsBase
             $case = new Cases();
             $case->pauseCase($caseUid, $delIndex, $userUid, $unpauseDate);
 
-            //Response
+            // Response
             $result = self::messageExecuteSuccessfully();
             $g->sessionVarRestore();
 
@@ -3316,7 +3318,6 @@ class WsBase
 
             if (empty($caseUid)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " caseUid");
-
                 $g->sessionVarRestore();
 
                 return $result;
@@ -3324,7 +3325,6 @@ class WsBase
 
             if (empty($delIndex)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " delIndex");
-
                 $g->sessionVarRestore();
 
                 return $result;
@@ -3332,7 +3332,6 @@ class WsBase
 
             if (empty($userUid)) {
                 $result = new WsResponse(100, G::LoadTranslation("ID_REQUIRED_FIELD") . " userUid");
-
                 $g->sessionVarRestore();
 
                 return $result;
@@ -3412,7 +3411,7 @@ class WsBase
                 return $result;
             }
 
-            //Add note case
+            // Define the Case for register a case note
             $appNote = new BmCases();
             $response = $appNote->addNote($caseUid, $userUid, $note, $sendMail, $files);
 
